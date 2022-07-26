@@ -19,10 +19,13 @@ async def main() -> None:
     bot = Bot(token=os.getenv('API_TOKEN'))
     # регистрируем доступные команды в боте в выпадающую менюху
     await bot.set_my_commands(commands=commands_for_bot) 
+    
     register_user_commands(dp)
 
     async_engine = create_async_engine(os.getenv('PG_URL'))
     session_maker = get_session_maker(async_engine)
+
+    #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)
 
     await dp.start_polling(bot, session_maker=session_maker)
