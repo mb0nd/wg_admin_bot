@@ -5,6 +5,7 @@ from aiogram.dispatcher.filters import CommandObject
 from .keyboards import get_accept_buttons, getvpn
 from user_callback import UserCallbackData
 from db.requests import create_user
+from gen_user import addUser
 bot = Bot(token=os.getenv('API_TOKEN'))
 
 in_verification = set()
@@ -34,16 +35,19 @@ async def get_vpn(call: types.CallbackQuery):
     )
 
 async def accept_event_user(call: types.CallbackQuery, callback_data: UserCallbackData):
-    await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-    in_verification.discard(int(callback_data.id))
+    pub_key, ip, config = await addUser(callback_data.name)
     user_data = {
         'id': callback_data.id,
         'name': callback_data.name,
         'full_name': callback_data.full_name,
-        'pub_key': 'qwertyFVEVRNRBrg454t34r34rDF#E@@4r4efs',
-        'ip': '10.0.0.1'
+        'pub_key': pub_key,
+        'ip': ip
     }
     await create_user(user_data)
+    await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
+    in_verification.discard(int(callback_data.id))
+    await bot.send_document(callback_data.id, config, protect_content=True)
+    
 
 async def decline_event_user(call: types.CallbackQuery, callback_data: UserCallbackData):
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
