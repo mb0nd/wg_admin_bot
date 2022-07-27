@@ -4,4 +4,3 @@ class UserCallbackData(CallbackData, prefix='user'):
     action: str
     id: int
     name: str
-    full_name: str

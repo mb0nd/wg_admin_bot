@@ -24,8 +24,7 @@ async def get_vpn(call: types.CallbackQuery):
         text= f"@{call.from_user.username} ({call.from_user.full_name}) отправил запрос на доступ.",
         reply_markup=get_accept_buttons(
             call.from_user.id, 
-            call.from_user.username, 
-            call.from_user.full_name
+            call.from_user.username
         ).as_markup(resize_keyboard=True)
     )
     await call.message.delete()
@@ -39,7 +38,6 @@ async def accept_event_user(call: types.CallbackQuery, callback_data: UserCallba
     user_data = {
         'id': callback_data.id,
         'name': callback_data.name,
-        'full_name': callback_data.full_name,
         'pub_key': pub_key,
         'ip': ip
     }
@@ -47,6 +45,7 @@ async def accept_event_user(call: types.CallbackQuery, callback_data: UserCallba
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
     in_verification.discard(int(callback_data.id))
     await bot.send_document(callback_data.id, config, protect_content=True)
+    
     
 
 async def decline_event_user(call: types.CallbackQuery, callback_data: UserCallbackData):

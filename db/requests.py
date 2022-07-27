@@ -1,4 +1,3 @@
-from re import U
 from typing import  Dict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +22,6 @@ async def create_user(user_data: Dict):
             user = User(
                 user_id = user_data['id'],
                 user_name = user_data['name'],
-                full_name = user_data['full_name'],
                 pub_key = user_data['pub_key'],
                 ip = user_data['ip']
             )
