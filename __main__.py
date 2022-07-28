@@ -3,6 +3,7 @@ import asyncio
 import logging
 from aiogram import Dispatcher, Bot
 from aiogram.types import BotCommand
+
 from commands import register_user_commands
 from commands.bot_commands import bot_commands
 from db import Base, create_async_engine, get_session_maker, proceed_schemas
@@ -20,10 +21,11 @@ async def main() -> None:
     # регистрируем доступные команды в боте в выпадающую менюху
     await bot.set_my_commands(commands=commands_for_bot) 
     
-    register_user_commands(dp)
 
     async_engine = create_async_engine(os.getenv('PG_URL'))
     session_maker = get_session_maker(async_engine)
+
+    register_user_commands(dp, session_maker, bot)
 
     #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)

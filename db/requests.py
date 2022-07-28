@@ -1,7 +1,8 @@
-from typing import  Dict
+from typing import  Dict, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User
+from sqlalchemy.orm import sessionmaker
 from db import create_async_engine, get_session_maker
 import os
 
@@ -13,9 +14,7 @@ import os
     )
     return user"""
 
-async def create_user(user_data: Dict):
-    async_engine = create_async_engine(os.getenv('PG_URL'))
-    session_maker = get_session_maker(async_engine)
+async def create_user(user_data: Dict, session_maker):
     async with session_maker() as session:
         session: AsyncSession
         async with session.begin():
@@ -25,6 +24,7 @@ async def create_user(user_data: Dict):
                 pub_key = user_data['pub_key'],
                 ip = user_data['ip']
             )
-        await session.merge(user)
+        session.add(user)
+        #await session.merge(user)
         await session.commit()
          

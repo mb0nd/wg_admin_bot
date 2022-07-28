@@ -1,12 +1,15 @@
+import imp
 import os
+from typing import Dict
 from commands.bot_commands import bot_commands
 from aiogram import types, Bot
+from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.dispatcher.filters import CommandObject
 from .keyboards import get_accept_buttons, getvpn
 from user_callback import UserCallbackData
 from db.requests import create_user
 from gen_user import addUser
-bot = Bot(token=os.getenv('API_TOKEN'))
+#bot = Bot(token=os.getenv('API_TOKEN'))
 
 in_verification = set()
 
@@ -17,7 +20,7 @@ async def start(message: types.Message) -> types.Message:
             reply_markup=getvpn().as_markup(resize_keyboard=True)
         )
 
-async def get_vpn(call: types.CallbackQuery):
+async def get_vpn(call: types.CallbackQuery, bot: Bot):
     in_verification.add(call.from_user.id)
     await bot.send_message(
         chat_id=os.getenv('ADMIN_ID'), 
@@ -33,7 +36,7 @@ async def get_vpn(call: types.CallbackQuery):
         show_alert=True
     )
 
-async def accept_event_user(call: types.CallbackQuery, callback_data: UserCallbackData):
+async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSession, bot: Bot, callback_data: UserCallbackData):
     pub_key, ip, config = await addUser(callback_data.name)
     user_data = {
         'id': callback_data.id,
@@ -41,7 +44,7 @@ async def accept_event_user(call: types.CallbackQuery, callback_data: UserCallba
         'pub_key': pub_key,
         'ip': ip
     }
-    await create_user(user_data)
+    await create_user(user_data, session_maker)
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
     in_verification.discard(int(callback_data.id))
     await bot.send_document(callback_data.id, config, protect_content=True)
