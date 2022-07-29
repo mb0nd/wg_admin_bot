@@ -3,7 +3,6 @@ import asyncio
 import logging
 from aiogram import Dispatcher, Bot
 from aiogram.types import BotCommand
-
 from commands import register_user_commands
 from commands.bot_commands import bot_commands
 from db import Base, create_async_engine, get_session_maker, proceed_schemas

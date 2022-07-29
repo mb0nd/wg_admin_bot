@@ -1,11 +1,7 @@
-from typing import  Dict, Any
+from typing import  Dict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models import User
-from sqlalchemy.orm import sessionmaker
-from db import create_async_engine, get_session_maker
-import os
-
 
 
 """async def get_user_by_id(session: AsyncSession, user_id: int):
@@ -25,6 +21,5 @@ async def create_user(user_data: Dict, session_maker):
                 ip = user_data['ip']
             )
         session.add(user)
-        #await session.merge(user)
         await session.commit()
          

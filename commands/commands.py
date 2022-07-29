@@ -1,15 +1,13 @@
-import imp
 import os
-from typing import Dict
 from commands.bot_commands import bot_commands
 from aiogram import types, Bot
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from aiogram.dispatcher.filters import CommandObject
 from .keyboards import get_accept_buttons, getvpn
 from user_callback import UserCallbackData
 from db.requests import create_user
 from gen_user import addUser
-#bot = Bot(token=os.getenv('API_TOKEN'))
 
 in_verification = set()
 
@@ -44,10 +42,13 @@ async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSessi
         'pub_key': pub_key,
         'ip': ip
     }
-    await create_user(user_data, session_maker)
-    await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-    in_verification.discard(int(callback_data.id))
-    await bot.send_document(callback_data.id, config, protect_content=True)
+    try:
+        await create_user(user_data, session_maker)
+        await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
+        await bot.send_document(callback_data.id, config, protect_content=True)
+    except IntegrityError:
+        await bot.send_message(callback_data.id, text='Вы уже зарегистрированы!')
+        await call.answer('Пользователь уже зарегистрирован')
     
     
 
