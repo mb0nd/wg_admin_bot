@@ -1,4 +1,3 @@
-
 from sqlalchemy import TIMESTAMP, BigInteger, Column, String, Boolean
 from datetime import datetime
 from .base import Base
@@ -16,3 +15,7 @@ class User(Base):
 
     def __str__(self) -> str:
         return f"<User:{self.user_id}>"
+
+class BanList(Base):
+    __tablename__ = 'banlist'
+    user_id = Column(BigInteger, primary_key=True, unique = True, nullable = False)

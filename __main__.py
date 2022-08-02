@@ -5,6 +5,7 @@ from aiogram import Dispatcher, Bot
 from aiogram.types import BotCommand
 from commands import register_user_commands
 from commands.bot_commands import bot_commands
+from db.requests import get_ban_list
 from db import Base, create_async_engine, get_session_maker, proceed_schemas
 
 async def main() -> None:
@@ -24,6 +25,10 @@ async def main() -> None:
     async_engine = create_async_engine(os.getenv('PG_URL'))
     session_maker = get_session_maker(async_engine)
 
+# В ban_list складываем все id  из таблицы заблокированных пользователей, далее будем 
+# передавать в middleware  для обработки 
+    ban_list = tuple(await get_ban_list(session_maker))
+
     register_user_commands(dp, session_maker, bot)
 
     #создает таблицы по классам
@@ -31,7 +36,7 @@ async def main() -> None:
 
     await dp.start_polling(bot, session_maker=session_maker)
 
-if __name__ == '__main__':
+if __name__ == '__main__': 
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
