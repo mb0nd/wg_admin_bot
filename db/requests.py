@@ -1,10 +1,11 @@
 from typing import  Dict, List
-from sqlalchemy import distinct, select
+from sqlalchemy import distinct, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import User, BanList
+from user_callback import UserCallbackData
+from .models import User
 
 
-async def create_user(user_data: Dict, session_maker) -> None:
+async def create_user(user_data: Dict, session_maker: AsyncSession) -> None:
     async with session_maker() as session:
         session: AsyncSession
         async with session.begin():
@@ -16,6 +17,25 @@ async def create_user(user_data: Dict, session_maker) -> None:
             )
         session.add(user)
         await session.commit()
+
+async def ban_user(session_maker: AsyncSession, callback_data: UserCallbackData):
+    async with session_maker() as session:
+        session: AsyncSession
+        stmt = select(User).where(User.is_baned==False, User.user_id==callback_data.id)
+        result = await session.execute(stmt)
+        find_user = result.first()
+        if find_user is not None:
+            stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=True)
+            await session.execute(stmt)
+            await session.commit()
+        else:
+            user = User(
+                user_id = callback_data.id,
+                user_name = callback_data.name,
+                is_baned = True
+            )
+            session.add(user)
+            await session.commit()
 
 async def get_user_by_id(session_maker: AsyncSession, id: int) -> User:
     async with session_maker() as session:
@@ -33,24 +53,6 @@ async def get_all_users(session_maker: AsyncSession) -> List[User]: # Пока �
         users = result.scalars().all()
     return users
          
-async def get_ban_list(session_maker: AsyncSession) -> List:
-    async with session_maker() as session:
-        session: AsyncSession
-        stmt = select(distinct(BanList.user_id))  #stmt = "SELECT DISTINCT user_id FROM banlist"
-        result = await session.execute(stmt)
-        ban_list = result.scalars().all()
-    return ban_list
-
-async def ban_user(session_maker: AsyncSession, id: int):
-    async with session_maker() as session:
-        session: AsyncSession
-        async with session.begin():
-            baned_user = BanList(
-                user_id = id
-            )
-        session.add(baned_user)
-        await session.commit()
-
 """
 Дублирует вышестоящую функцию из таблицы users по флагу is_baned... 
 Возможно оно будет более правильно в дальнейшем, пока юзаем отдельную таблицу

@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from aiogram.dispatcher.filters import CommandObject
 from .keyboards import get_accept_buttons, getvpn
 from user_callback import UserCallbackData
-from db.requests import create_user
+from db.requests import create_user, ban_user
 from gen_user import addUser
 
 in_verification = set()
@@ -49,11 +49,15 @@ async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSessi
     except IntegrityError:
         await bot.send_message(callback_data.id, text='Вы уже зарегистрированы!')
         await call.answer('Пользователь уже зарегистрирован')
-    
+    in_verification.discard(int(callback_data.id))
     
 
-async def decline_event_user(call: types.CallbackQuery, callback_data: UserCallbackData):
-    await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
+async def decline_event_user(call: types.CallbackQuery, session_maker: AsyncSession, callback_data: UserCallbackData):
+    try:
+        await ban_user(session_maker, callback_data)
+        await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
+    except IntegrityError:
+        await call.answer('Не удалось забанить, что то пошло не так ...')
     in_verification.discard(int(callback_data.id))
 
 async def help_command(message: types.Message, command: CommandObject) -> None:
