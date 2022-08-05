@@ -1,7 +1,9 @@
 from typing import  Dict, List
-from sqlalchemy import distinct, select, update
+from datetime import datetime
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
+from gen_user import blocked_user, unblocked_user
 from .models import User
 
 
@@ -25,7 +27,8 @@ async def ban_user(session_maker: AsyncSession, callback_data: UserCallbackData)
         result = await session.execute(stmt)
         find_user = result.first()
         if find_user is not None:
-            stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=True)
+            await blocked_user(find_user[0].pub_key)
+            stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=True, updated_at=datetime.now())
             await session.execute(stmt)
             await session.commit()
         else:
@@ -35,6 +38,18 @@ async def ban_user(session_maker: AsyncSession, callback_data: UserCallbackData)
                 is_baned = True
             )
             session.add(user)
+            await session.commit()
+        
+async def uban_user(session_maker: AsyncSession, callback_data: UserCallbackData):
+    async with session_maker() as session:
+        session: AsyncSession
+        stmt = select(User).where(User.is_baned==True, User.user_id==callback_data.id)
+        result = await session.execute(stmt)
+        find_user = result.first()
+        if find_user is not None:
+            await unblocked_user(find_user[0].pub_key, find_user[0].ip)
+            stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=False, updated_at=datetime.now())
+            await session.execute(stmt)
             await session.commit()
 
 async def get_user_by_id(session_maker: AsyncSession, id: int) -> User:

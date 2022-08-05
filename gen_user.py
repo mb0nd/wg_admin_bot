@@ -51,3 +51,19 @@ async def addUser(name :str) -> Tuple:
     await writeLastIp(data['current_ip'])
     config = FSInputFile(f'/etc/wireguard/{name}/{name}.conf', filename=f'{name}.conf')
     return (data['publickey'], data['current_ip'], config)
+
+async def blocked_user(key: str) -> None:
+    os.system(f'wg set wg0 peer {key} remove')
+    with open('/etc/wireguard/wg0.conf', 'r', encoding='utf-8') as f:
+        input_text = f.read()
+    output_text = input_text.replace(key, f"%BANNED%{key}")
+    with open('/etc/wireguard/wg0.conf', 'w', encoding='utf-8') as f:
+        f.write(output_text)
+
+async def unblocked_user(key: str, ip: str) -> None:
+    os.system(f'wg set wg0 peer {key} allowed-ips {ip}/32')
+    with open('/etc/wireguard/wg0.conf', 'r', encoding='utf-8') as f:
+        input_text = f.read()
+    output_text = input_text.replace(f"%BANNED%{key}", key)
+    with open('/etc/wireguard/wg0.conf', 'w', encoding='utf-8') as f:
+        f.write(output_text)
