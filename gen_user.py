@@ -18,8 +18,9 @@ async def getEnv(name :str) -> Dict:
     with open('/etc/wireguard/publickey', 'r', encoding='utf-8') as file:
         env['serverPublickey'] = file.read().strip()
     with open('last_ip', 'r', encoding='utf-8') as file:
-        ip = file.read()
-    env['current_ip']=ip[:-1]+str(int(ip[-1])+1)
+        ip = file.read().strip().split('.')
+    ip[-1] = str(int(ip[-1])+1)
+    env['current_ip'] = '.'.join(ip)
     env['listen_port'] = os.getenv('LISTEN_PORT')
     env['hostname'] = os.uname().nodename
     return env
