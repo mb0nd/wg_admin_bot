@@ -16,7 +16,7 @@ async def main() -> None:
     async_engine = create_async_engine(os.getenv('PG_URL'))
     session_maker = get_session_maker(async_engine)
 
-    register_user_commands(dp, session_maker)
+    register_user_commands(dp)
 
     #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)

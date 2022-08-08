@@ -33,7 +33,7 @@ async def get_vpn(call: types.CallbackQuery, bot: Bot):
         show_alert=True
     )
 
-async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSession, bot: Bot, callback_data: UserCallbackData):
+async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData):
     pub_key, ip, config = await addUser(callback_data.name)
     user_data = {
         'id': callback_data.id,
@@ -42,7 +42,7 @@ async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSessi
         'ip': ip
     }
     try:
-        await create_user(user_data, session_maker)
+        await create_user(user_data, session)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
         await bot.send_document(callback_data.id, config, protect_content=True)
     except IntegrityError:
@@ -50,9 +50,9 @@ async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSessi
         await call.answer('Пользователь уже зарегистрирован')
     in_verification.discard(int(callback_data.id))
 
-async def decline_event_user(call: types.CallbackQuery, session_maker: AsyncSession, callback_data: UserCallbackData):
+async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData):
     try:
-        await ban_user(session_maker, callback_data)
+        await ban_user(callback_data, session)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
     except IntegrityError:
         await call.answer('Не удалось забанить, что то пошло не так ...')
