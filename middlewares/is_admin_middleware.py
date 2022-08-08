@@ -17,7 +17,7 @@ class IsAdminMiddleware(BaseMiddleware):
         event: Message,
         data: Dict[str, Any]
     ) -> Any:
-        if data['event_from_user'].id != self.admin_id:
+        if data['event_from_user'].id == self.admin_id:
             return await handler(event, data)
         return
         # возможно добавить запись в лог, если кто то ломится в админские команды

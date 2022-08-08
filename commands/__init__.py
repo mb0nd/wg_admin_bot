@@ -12,11 +12,12 @@ from commands.commands import start, admin_command, get_vpn, any_text, accept_ev
 router_admin = Router()
 router_user = Router()
 
-def register_user_commands(dp: Dispatcher, session_maker, bot) -> None:
-    # Мидлварь с проверкой на БАН проверяет все события
-    dp.update.outer_middleware.register(IsBanedMiddleware(session_maker))
+def register_user_commands(dp: Dispatcher, session_maker) -> None:
     # Мидлварь которая прокидывает сессию БД и объект Бота 
-    dp.callback_query.middleware.register(DbSessionMiddleware(session_maker, bot))
+    dp.update.outer_middleware.register(DbSessionMiddleware(session_maker))
+    # Мидлварь с проверкой на БАН проверяет все события
+    dp.update.outer_middleware.register(IsBanedMiddleware())
+    
     router_user.message.register(start, Command(commands=['start']))
     router_user.callback_query.register(get_vpn, text='getvpn')
     router_user.message.register(any_text)

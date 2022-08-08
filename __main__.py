@@ -16,12 +16,12 @@ async def main() -> None:
     async_engine = create_async_engine(os.getenv('PG_URL'))
     session_maker = get_session_maker(async_engine)
 
-    register_user_commands(dp, session_maker, bot)
+    register_user_commands(dp, session_maker)
 
     #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)
 
-    await dp.start_polling(bot, session_maker=session_maker)
+    await dp.start_polling(bot, session_maker=session_maker) #Сессию можно брать отсюда
 
 if __name__ == '__main__': 
     try:

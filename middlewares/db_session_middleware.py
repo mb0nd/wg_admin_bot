@@ -1,21 +1,19 @@
 from typing import Callable, Awaitable, Dict, Any
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Update
 
 class DbSessionMiddleware(BaseMiddleware):
 
-    def __init__(self, session_maker, bot):
+    def __init__(self, session_maker):
         super().__init__()
         self.session_maker = session_maker
-        self.bot = bot
 
     async def __call__(
         self,
-        handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
-        event: CallbackQuery,
+        handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
+        event: Update,
         data: Dict[str, Any]
     ) -> Any:
-
-        data["session_maker"] = self.session_maker
-        data['bot'] = self.bot
-        return await handler(event, data)
+        async with self.session_maker() as session:
+            data['session'] = session
+            return await handler(event, data)
