@@ -23,7 +23,6 @@ class IsBanedMiddleware(BaseMiddleware):
             stmt = select(User).where(User.is_baned==True, User.user_id==data['event_from_user'].id)
             result = await session.execute(stmt)
             find_baned_user: User = result.first()
-            print(find_baned_user)
         if find_baned_user is not None:
             if event.event_type is 'callback_query':
                 return await event.callback_query.answer()

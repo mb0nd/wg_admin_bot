@@ -1,5 +1,4 @@
 import os
-from commands.bot_commands import bot_commands
 from aiogram import types, Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -50,7 +49,6 @@ async def accept_event_user(call: types.CallbackQuery, session_maker: AsyncSessi
         await bot.send_message(callback_data.id, text='Вы уже зарегистрированы!')
         await call.answer('Пользователь уже зарегистрирован')
     in_verification.discard(int(callback_data.id))
-    
 
 async def decline_event_user(call: types.CallbackQuery, session_maker: AsyncSession, callback_data: UserCallbackData):
     try:
@@ -60,17 +58,8 @@ async def decline_event_user(call: types.CallbackQuery, session_maker: AsyncSess
         await call.answer('Не удалось забанить, что то пошло не так ...')
     in_verification.discard(int(callback_data.id))
 
-async def help_command(message: types.Message, command: CommandObject) -> None:
-    if command.args:
-        for cmd in bot_commands:
-            if cmd[0] == command.args:
-                return await message.answer(f'{cmd[0]} - {cmd[1]}\n\n{cmd[2]}')
-        else:
-            return await message.answer('Команда не найдена')
-    return await message.answer(
-        'Помощь по боту\n Для получения информации о команде'
-        'используйте /help <команда>\n'
-    )
+async def admin_command(message: types.Message) -> None:
+    return await message.answer("You're an admin!")
 
 async def any_text(message: types.Message):
     await message.answer(text='Не известный запрос, используйте кнопки')
