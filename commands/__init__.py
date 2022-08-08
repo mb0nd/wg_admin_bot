@@ -30,7 +30,4 @@ def register_user_commands(dp: Dispatcher) -> None:
     router_admin.message.register(admin_command, Command(commands=['admin']))
     router_admin.callback_query.filter(F.from_user.id == int(os.getenv('ADMIN_ID')))
     router_admin.callback_query.register(accept_event_user, UserCallbackData.filter(F.action=='accept_user'))
-    router_admin.callback_query.register(decline_event_user, UserCallbackData.filter(F.action=='decline_user'))
-    
-
-    
+    router_admin.callback_query.register(decline_event_user, UserCallbackData.filter(F.action=='decline_user'))  
