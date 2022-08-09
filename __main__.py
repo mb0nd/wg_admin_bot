@@ -1,8 +1,7 @@
-import os
 import asyncio
 import logging
 from aiogram import Dispatcher, Bot
-from aiogram.types import BotCommand
+from env_reader import env
 from commands import register_user_commands
 from db import Base, create_async_engine, get_session_maker, proceed_schemas
 
@@ -10,10 +9,10 @@ async def main() -> None:
     logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',level=logging.INFO)
 
     dp = Dispatcher()
-    bot = Bot(token=os.getenv('API_TOKEN'))
+    bot = Bot(token=env.api_token)
     # регистрируем доступные команды в боте в выпадающую менюху
 
-    async_engine = create_async_engine(os.getenv('PG_URL'))
+    async_engine = create_async_engine(env.pg_url)
     session_maker = get_session_maker(async_engine)
 
     register_user_commands(dp)
@@ -21,7 +20,7 @@ async def main() -> None:
     #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)
 
-    await dp.start_polling(bot, session_maker=session_maker) #Сессию можно брать отсюда
+    await dp.start_polling(bot, session_maker=session_maker, env=env) #Сессию можно брать отсюда
 
 if __name__ == '__main__': 
     try:

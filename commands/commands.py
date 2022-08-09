@@ -1,11 +1,10 @@
-import os
 from aiogram import types, Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from aiogram.dispatcher.filters import CommandObject
 from .keyboards import get_accept_buttons, getvpn
 from user_callback import UserCallbackData
-from db.requests import create_user, ban_user
+from env_reader import Settings
+from db.requests import create_user, ban_user, get_user_by_id
 from gen_user import addUser
 
 in_verification = set()
@@ -17,15 +16,17 @@ async def start(message: types.Message) -> types.Message:
             reply_markup=getvpn().as_markup(resize_keyboard=True)
         )
 
-async def get_vpn(call: types.CallbackQuery, bot: Bot):
+async def get_vpn(call: types.CallbackQuery, bot: Bot, env: Settings, session: AsyncSession):
+    user = await get_user_by_id(call.from_user.id, session)
+    if user:
+        await call.message.edit_text( text='Вы уже зарегистрированы!')
+        return
+
     in_verification.add(call.from_user.id)
     await bot.send_message(
-        chat_id=os.getenv('ADMIN_ID'), 
+        chat_id=env.admin_id,
         text= f"@{call.from_user.username} ({call.from_user.full_name}) отправил запрос на доступ.",
-        reply_markup=get_accept_buttons(
-            call.from_user.id, 
-            call.from_user.username
-        ).as_markup(resize_keyboard=True)
+        reply_markup=get_accept_buttons(call.from_user.id, call.from_user.username).as_markup(resize_keyboard=True)
     )
     await call.message.delete()
     return await call.answer(
@@ -33,21 +34,17 @@ async def get_vpn(call: types.CallbackQuery, bot: Bot):
         show_alert=True
     )
 
-async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData):
-    pub_key, ip, config = await addUser(callback_data.name)
+async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings):
+    pub_key, ip, config = await addUser(callback_data.name, env.listen_port) 
     user_data = {
         'id': callback_data.id,
         'name': callback_data.name,
         'pub_key': pub_key,
         'ip': ip
     }
-    try:
-        await create_user(user_data, session)
-        await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-        await bot.send_document(callback_data.id, config, protect_content=True)
-    except IntegrityError:
-        await bot.send_message(callback_data.id, text='Вы уже зарегистрированы!')
-        await call.answer('Пользователь уже зарегистрирован')
+    await create_user(user_data, session)
+    await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
+    await bot.send_document(callback_data.id, config, protect_content=True)
     in_verification.discard(int(callback_data.id))
 
 async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData):

@@ -21,7 +21,6 @@ async def getEnv(name :str) -> Dict:
         ip = file.read().strip().split('.')
     ip[-1] = str(int(ip[-1])+1)
     env['current_ip'] = '.'.join(ip)
-    env['listen_port'] = os.getenv('LISTEN_PORT')
     env['hostname'] = os.uname().nodename
     return env
     
@@ -30,12 +29,12 @@ async def setNewPeer(publickey :str, current_ip :str) -> None:
         file.write(f"\n[Peer]\nPublicKey = {publickey}\nAllowedIPs = {current_ip}/32")
     os.system ( f"wg set wg0 peer {publickey} allowed-ips {current_ip}/32")
 
-async def generatePeerConfig(name :str,data :dict) -> None:
+async def generatePeerConfig(name: str,data: dict, port: str) -> None:
     with open(f'/etc/wireguard/{name}/{name}.conf', 'w', encoding='utf-8') as file:
         file.write(
             f"[Interface]\nPrivateKey = {data['privatekey']}\nAddress = {data['current_ip']}/32\n"
             f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {data['serverPublickey']}\n"
-            f"Endpoint = {data['hostname']}:{data['listen_port']}\n"
+            f"Endpoint = {data['hostname']}:{port}\n"
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
         )
 
@@ -43,11 +42,11 @@ async def writeLastIp(ip :str) -> None:
     with open('last_ip', 'w', encoding='utf-8') as file:
         file.write(ip)
 
-async def addUser(name :str) -> Tuple:
+async def addUser(name :str, port: str) -> Tuple:
     await genKeys(name)
     data = await getEnv(name)
     await setNewPeer(data['publickey'], data['current_ip'])
-    await generatePeerConfig(name, data)
+    await generatePeerConfig(name, data, port)
     await writeLastIp(data['current_ip'])
     config = FSInputFile(f'/etc/wireguard/{name}/{name}.conf', filename=f'{name}.conf')
     return (data['publickey'], data['current_ip'], config)
