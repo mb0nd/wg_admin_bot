@@ -17,12 +17,12 @@ async def create_user(user_data: Dict, session: AsyncSession) -> None:
     session.add(user)
     await session.commit()
 
-async def ban_user(callback_data: UserCallbackData, session: AsyncSession):
+async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str):
     stmt = select(User).where(User.is_baned==False, User.user_id==callback_data.id)
     result = await session.execute(stmt)
     find_user = result.first()
     if find_user is not None:
-        await blocked_user(find_user[0].pub_key)
+        await blocked_user(find_user[0].pub_key, path_to_wg)
         stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=True, updated_at=datetime.now())
         await session.execute(stmt)
         await session.commit()

@@ -13,7 +13,7 @@ router = Router()
 
 @router.callback_query(UserCallbackData.filter(F.action =='accept_user'))
 async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set):
-    pub_key, ip, config = await addUser(callback_data.name, env.listen_port) 
+    pub_key, ip, config = await addUser(callback_data.name, env.listen_port, env.path_to_wg) 
     user_data = {
         'id': callback_data.id,
         'name': callback_data.name,
@@ -26,9 +26,9 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
-async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, in_verification: set):
+async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings, in_verification: set):
     try:
-        await ban_user(callback_data, session)
+        await ban_user(callback_data, session, env.path_to_wg)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
     except IntegrityError:
         await call.answer('Не удалось забанить, что то пошло не так ...')

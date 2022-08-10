@@ -15,4 +15,5 @@ class Settings(BaseSettings):
     admin_id: int
     pg_url: PostgresDsn
     listen_port: int
+    path_to_wg: str
 env = Settings()
