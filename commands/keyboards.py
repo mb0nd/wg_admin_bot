@@ -14,3 +14,19 @@ def get_accept_buttons(user_id, user_name):
         InlineKeyboardButton(text='❌ decline', callback_data=UserCallbackData(action='decline_user', id=user_id, name=user_name).pack()),
         width=2
     )
+
+def admin_menu():
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Потребление трафика 📈', callback_data='traffic_statistics'))
+    builder.row(InlineKeyboardButton(text='Список активных пользователей 📗', callback_data='active_users'))
+    builder.row(InlineKeyboardButton(text='Список заблокированных пользователей 📕', callback_data='block_users'))
+    builder.row(InlineKeyboardButton(text='Закрыть ❌', callback_data='close'))
+    return builder
+
+def block_users_menu(user_list: list):
+    builder = InlineKeyboardBuilder()
+    for user in user_list:
+        builder.row(InlineKeyboardButton(text=f"{user.user_name} : удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
+    builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
+    return builder
+    

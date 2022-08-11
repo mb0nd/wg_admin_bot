@@ -1,6 +1,6 @@
 from typing import  Dict, List
 from datetime import datetime
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
 from gen_user import blocked_user, unblocked_user
@@ -50,6 +50,17 @@ async def get_user_by_id(id: int, session: AsyncSession) -> User:
     result = await session.execute(stmt)
     user = result.scalars().first()
     return user
+
+async def get_blocked_users(session: AsyncSession) -> List[User]:
+    stmt = select(User).where(User.is_baned==True, User.pub_key=="0", User.ip=="0")
+    result = await session.execute(stmt)
+    blocked_users = result.scalars().all()
+    return blocked_users
+
+async def delete_user_by_id(id: int, session: AsyncSession) -> None:
+    stmt = delete(User).where(User.user_id == id)
+    await session.execute(stmt)
+    await session.commit()
 
 async def get_all_users(session: AsyncSession) -> List[User]: # Пока не проверял, должен быть кортеж кортежей
     stmt = select(User)
