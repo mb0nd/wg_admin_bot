@@ -3,5 +3,5 @@ from typing import Union
 
 class UserCallbackData(CallbackData, prefix='user'):
     action: str
-    id: int
+    id: Union[int, None]
     name: Union[str, None]

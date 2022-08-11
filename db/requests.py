@@ -17,7 +17,7 @@ async def create_user(user_data: Dict, session: AsyncSession) -> None:
     session.add(user)
     await session.commit()
 
-async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str):
+async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
     stmt = select(User).where(User.is_baned==False, User.user_id==callback_data.id)
     result = await session.execute(stmt)
     find_user = result.first()
@@ -35,12 +35,12 @@ async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_
         session.add(user)
         await session.commit()
         
-async def uban_user(callback_data: UserCallbackData, session: AsyncSession):
+async def uban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
     stmt = select(User).where(User.is_baned==True, User.user_id==callback_data.id)
     result = await session.execute(stmt)
     find_user = result.first()
     if find_user is not None:
-        await unblocked_user(find_user[0].pub_key, find_user[0].ip)
+        await unblocked_user(find_user[0].pub_key, find_user[0].ip, path_to_wg)
         stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=False, updated_at=datetime.now())
         await session.execute(stmt)
         await session.commit()
@@ -61,6 +61,12 @@ async def delete_user_by_id(id: int, session: AsyncSession) -> None:
     stmt = delete(User).where(User.user_id == id)
     await session.execute(stmt)
     await session.commit()
+
+async def get_real_users(session: AsyncSession) -> List[User]:
+    stmt = select(User).where(User.pub_key!="0", User.ip!="0")
+    result = await session.execute(stmt)
+    real_users = result.scalars().all()
+    return real_users
 
 async def get_all_users(session: AsyncSession) -> List[User]: # Пока не проверял, должен быть кортеж кортежей
     stmt = select(User)

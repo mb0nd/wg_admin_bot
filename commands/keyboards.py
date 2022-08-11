@@ -18,7 +18,7 @@ def get_accept_buttons(user_id, user_name):
 def admin_menu():
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Потребление трафика 📈', callback_data='traffic_statistics'))
-    builder.row(InlineKeyboardButton(text='Список активных пользователей 📗', callback_data='active_users'))
+    builder.row(InlineKeyboardButton(text='Список реальных пользователей 📗', callback_data='real_users'))
     builder.row(InlineKeyboardButton(text='Список заблокированных пользователей 📕', callback_data='block_users'))
     builder.row(InlineKeyboardButton(text='Закрыть ❌', callback_data='close'))
     return builder
@@ -27,6 +27,16 @@ def block_users_menu(user_list: list):
     builder = InlineKeyboardBuilder()
     for user in user_list:
         builder.row(InlineKeyboardButton(text=f"{user.user_name} : удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
+    builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
+    return builder
+
+def real_users_menu(user_list: list):
+    builder = InlineKeyboardBuilder()
+    for user in user_list:
+        if user.is_baned:
+            builder.row(InlineKeyboardButton(text=f"{user.user_name} : разблокировать ✅", callback_data=UserCallbackData(action='uban_user', id=user.user_id).pack()))
+        else:
+            builder.row(InlineKeyboardButton(text=f"{user.user_name} : заблокировать ❌", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder
     
