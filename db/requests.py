@@ -68,7 +68,7 @@ async def get_real_users(session: AsyncSession) -> List[User]:
     real_users = result.scalars().all()
     return real_users
 
-async def get_all_users(session: AsyncSession) -> List[User]: # Пока не проверял, должен быть кортеж кортежей
+async def get_all_users(session: AsyncSession) -> List[User]:
     stmt = select(User)
     result = await session.execute(stmt)
     users = result.scalars().all()

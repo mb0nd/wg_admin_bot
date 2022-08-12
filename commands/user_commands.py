@@ -13,7 +13,7 @@ async def start(message: types.Message, in_verification: set) -> types.Message:
     if not message.from_user.id in in_verification:
         await message.answer(
             'Если ты здесь, значит ты знаешь зачем...', 
-            reply_markup=getvpn().as_markup(resize_keyboard=True)
+            reply_markup=getvpn()
         )
 
 @router.callback_query(text='getvpn')
@@ -33,7 +33,7 @@ async def get_vpn(
     await bot.send_message(
         chat_id=env.admin_id,
         text= f"@{call.from_user.username} ({call.from_user.full_name}) отправил запрос на доступ.",
-        reply_markup=get_accept_buttons(call.from_user.id, call.from_user.username).as_markup(resize_keyboard=True)
+        reply_markup=get_accept_buttons(call.from_user.id, call.from_user.username)
     )
     await call.message.delete()
     return await call.answer(

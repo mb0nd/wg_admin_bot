@@ -1,19 +1,18 @@
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from db.models import User
 from user_callback import UserCallbackData
 from env_reader import Settings
-from commands.keyboards import admin_menu, block_users_menu
+from commands.keyboards import admin_menu
 from gen_user import addUser
-from db.requests import create_user, ban_user, uban_user, get_blocked_users, delete_user_by_id
+from db.requests import create_user, ban_user, uban_user, delete_user_by_id
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu
 
 
 router = Router()
 
 @router.callback_query(UserCallbackData.filter(F.action =='accept_user'))
-async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set):
+async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
     pub_key, ip, config = await addUser(callback_data.name, env.listen_port, env.path_to_wg) 
     user_data = {
         'id': callback_data.id,
@@ -27,7 +26,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
-async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings, in_verification: set):
+async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
     try:
         await ban_user(callback_data, session, env.path_to_wg)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
@@ -37,11 +36,11 @@ async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, c
 
 @router.message(commands=['admin'])
 async def admin_command(message: types.Message) -> None:
-    await message.answer("You're an admin!", reply_markup=admin_menu().as_markup(resize_keyboard=True))
+    await message.answer("You're an admin!", reply_markup=admin_menu())
 
 @router.callback_query(text='admin')
 async def back_admin_menu(call: types.CallbackQuery) -> None:
-    await call.message.edit_text("You're an admin!", reply_markup=admin_menu().as_markup(resize_keyboard=True))
+    await call.message.edit_text("You're an admin!", reply_markup=admin_menu())
 
 @router.callback_query(text='real_users')
 async def admin_real_users(call: types.CallbackQuery, session: AsyncSession) -> None:
