@@ -17,9 +17,9 @@ class IsBanedMiddleware(BaseMiddleware):
     ) -> Any:
 
         session: AsyncSession = data['session']
-        stmt = select(User).where(User.is_baned==True, User.user_id==data['event_from_user'].id)
+        stmt = select(User.user_id).where(User.is_baned==True, User.user_id==data['event_from_user'].id)
         result = await session.execute(stmt)
-        find_baned_user: User = result.first()
+        find_baned_user: int = result.first()
         if find_baned_user is not None:
             if event.event_type == 'callback_query':
                 return await event.callback_query.answer()

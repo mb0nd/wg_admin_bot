@@ -1,4 +1,5 @@
 import os
+import subprocess
 from typing import Dict, Tuple
 from aiogram.types import FSInputFile
 
@@ -66,3 +67,14 @@ async def unblocked_user(key: str, ip: str, path_to_wg: str) -> None:
     output_text = input_text.replace(f"%BANNED%{key}", key)
     with open(f'{path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
         f.write(output_text)
+
+async def check_statistics():
+    output = subprocess.check_output(['wg', 'show']).decode('utf-8').splitlines()[5:]
+    print(output, type(output))
+    # [
+    # 'peer: eqKMEut3DPeiqSlReuYFsoYWhAyXJTuxWAJfUaPCJSg=', 
+    # '  allowed ips: 10.0.0.229/32', 
+    # '', 
+    # 'peer: SAXxMUKsS36e1cXGddNfSxnkhLq4rpYlIDoo46jjMiY=', 
+    # '  allowed ips: 10.0.0.230/32'
+    # ] <class 'list'>

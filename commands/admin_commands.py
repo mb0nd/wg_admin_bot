@@ -4,8 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu
-from gen_user import addUser
-from db.requests import create_user, ban_user, uban_user, delete_user_by_id
+from gen_user import addUser, check_statistics
+from db.requests import create_user, ban_user, uban_user, delete_user_by_id, get_real_users
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu
 
 
@@ -22,7 +22,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     }
     await create_user(user_data, session)
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-    await bot.send_document(callback_data.id, config, protect_content=True)
+    await bot.send_document(callback_data.id, config, )
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
@@ -41,6 +41,11 @@ async def admin_command(message: types.Message) -> None:
 @router.callback_query(text='admin')
 async def back_admin_menu(call: types.CallbackQuery) -> None:
     await call.message.edit_text("You're an admin!", reply_markup=admin_menu())
+
+@router.callback_query(text='traffic_statistics')
+async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
+    await get_real_users(session) # Получаем список пользователей из БД
+    await check_statistics() # Тут дергаем wg show и парсим данные возвращаемые командой
 
 @router.callback_query(text='real_users')
 async def admin_real_users(call: types.CallbackQuery, session: AsyncSession) -> None:

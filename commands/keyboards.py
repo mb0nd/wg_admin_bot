@@ -25,8 +25,8 @@ def admin_menu():
 
 def block_users_menu(user_list: list):
     builder = InlineKeyboardBuilder()
-    for user in user_list:
-        builder.row(InlineKeyboardButton(text=f"{user.user_name} : удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
+    for id, name in user_list:
+        builder.row(InlineKeyboardButton(text=f"{name} : удалить ❌", callback_data=UserCallbackData(action='delete_user', id=id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder.as_markup(resize_keyboard=True)
 
@@ -39,4 +39,3 @@ def real_users_menu(user_list: list):
             builder.row(InlineKeyboardButton(text=f"{user.user_name} : заблокировать ❌", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder.as_markup(resize_keyboard=True)
-    
