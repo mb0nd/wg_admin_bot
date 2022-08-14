@@ -39,3 +39,9 @@ def real_users_menu(user_list: list):
             builder.row(InlineKeyboardButton(text=f"{user.user_name} : заблокировать ❌", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder.as_markup(resize_keyboard=True)
+
+def back_button():
+    return InlineKeyboardBuilder().button(
+        text='< Назад', 
+        callback_data='admin'
+    ).as_markup(resize_keyboard=True)

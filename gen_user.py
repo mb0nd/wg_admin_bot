@@ -1,6 +1,6 @@
 import os
 import subprocess
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 from aiogram.types import FSInputFile
 
 async def genKeys (name :str, path_to_wg: str) -> None:
@@ -68,13 +68,51 @@ async def unblocked_user(key: str, ip: str, path_to_wg: str) -> None:
     with open(f'{path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
         f.write(output_text)
 
-async def check_statistics():
+async def check_statistics() -> List[Dict]:
+    def str_to_dict(s: str):
+        s.strip()
+        if not s:
+            return
+        k,v = s.split(': ')
+        return (k.strip(), v)
     output = subprocess.check_output(['wg', 'show']).decode('utf-8').splitlines()[5:]
-    print(output, type(output))
-    # [
-    # 'peer: eqKMEut3DPeiqSlReuYFsoYWhAyXJTuxWAJfUaPCJSg=', 
-    # '  allowed ips: 10.0.0.229/32', 
-    # '', 
-    # 'peer: SAXxMUKsS36e1cXGddNfSxnkhLq4rpYlIDoo46jjMiY=', 
-    # '  allowed ips: 10.0.0.230/32'
-    # ] <class 'list'>
+    peers = list()
+    peer = dict()
+    for s in map(str_to_dict, output):
+        if s is None:
+            peers.append(peer)
+            peer = dict()
+            continue
+        peer[s[0]] = s[1]
+    else:
+        peers.append(peer)
+    return peers  
+
+async def data_preparation(data_db: list, data_cmd: list) -> str:
+    res=''
+    for peer in data_cmd:
+        for user in data_db:
+            if peer['peer'] == user.pub_key:
+                if peer.get('endpoint'):
+                    res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n<b>Внешний адрес/порт</b>: <code>{peer['endpoint']}</code>\n<b>Появлялся:</b> <code>{peer['latest handshake']}</code>\n<b>Трафик:</b> <code>{peer['transfer']}</code>\n{'_'*50}\n"
+                else:
+                    res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n{'_'*50}\n"
+                break
+    return res
+
+
+
+# [<db.models.User object at 0x7f0cdbe9c790>]
+#[
+#   {
+#       'peer': 'SAXxMUKsS36e1cXGddNfSxnkhLq4rpYlIDoo46jjMiY=', 
+#       'endpoint': '10.136.127.38:52260', 
+#       'allowed ips': '10.0.0.230/32', 
+#       'latest handshake': '2 hours, 9 minutes, 1 second ago', 
+#       'transfer': '8.38 KiB received, 14.80 KiB sent'
+#   }, 
+#   {
+#       'peer': 'eqKMEut3DPeiqSlReuYFsoYWhAyXJTuxWAJfUaPCJSg=', 
+#       'allowed ips': '10.0.0.229/32'
+#   }
+# ]
