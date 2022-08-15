@@ -1,6 +1,7 @@
 from typing import Callable, Awaitable, Dict, Any
 from aiogram import BaseMiddleware
-from aiogram.types import CallbackQuery, Update
+from aiogram.types import Update
+
 
 class DbSessionMiddleware(BaseMiddleware):
     async def __call__(

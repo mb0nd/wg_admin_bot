@@ -6,16 +6,13 @@ from sqlalchemy import select
 from db.models import User
 
 
-
 class IsBanedMiddleware(BaseMiddleware):
-
     async def __call__(
         self, 
         handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]], 
         event: Update, 
         data: Dict[str, Any]
     ) -> Any:
-
         session: AsyncSession = data['session']
         stmt = select(User.user_id).where(User.is_baned==True, User.user_id==data['event_from_user'].id)
         result = await session.execute(stmt)

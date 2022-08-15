@@ -1,13 +1,11 @@
-from cgitb import text
 from aiogram import Bot, Router, types
 from sqlalchemy.ext.asyncio import AsyncSession
 from commands.keyboards import getvpn, get_accept_buttons
 from env_reader import Settings
 from db.requests import check_user_by_id
 
+
 router = Router()
-
-
 @router.message(commands=["start"])
 async def start(message: types.Message, in_verification: set) -> types.Message:
     if not message.from_user.id in in_verification:
@@ -29,7 +27,6 @@ async def get_vpn(
     if user:
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return
-
     in_verification.add(call.from_user.id)
     await bot.send_message(
         chat_id=env.admin_id,

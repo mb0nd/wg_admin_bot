@@ -103,7 +103,8 @@ async def check_statistics() -> List[Dict]:
         peers.append(peer)
     return peers  
 
-async def data_preparation(data_db: Union[list, User], data_cmd: list) -> str:
+async def data_preparation(data_db: Union[list, User]) -> str:
+    data_cmd = await check_statistics()
     res=''
     for peer in data_cmd:
         for user in data_db:
@@ -116,20 +117,3 @@ async def data_preparation(data_db: Union[list, User], data_cmd: list) -> str:
     if not res:
         return 'Нет такого пользователя в wireguard'
     return res
-
-
-
-# [<db.models.User object at 0x7f0cdbe9c790>]
-#[
-#   {
-#       'peer': 'SAXxMUKsS36e1cXGddNfSxnkhLq4rpYlIDoo46jjMiY=', 
-#       'endpoint': '10.136.127.38:52260', 
-#       'allowed ips': '10.0.0.230/32', 
-#       'latest handshake': '2 hours, 9 minutes, 1 second ago', 
-#       'transfer': '8.38 KiB received, 14.80 KiB sent'
-#   }, 
-#   {
-#       'peer': 'eqKMEut3DPeiqSlReuYFsoYWhAyXJTuxWAJfUaPCJSg=', 
-#       'allowed ips': '10.0.0.229/32'
-#   }
-# ]

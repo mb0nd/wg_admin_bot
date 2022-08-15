@@ -5,7 +5,7 @@ from db.models import User
 from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
-from gen_user import addUser, check_statistics, data_preparation, remove_user
+from gen_user import addUser, data_preparation, remove_user
 from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
@@ -45,9 +45,8 @@ async def back_admin_menu(call: types.CallbackQuery) -> None:
 
 @router.callback_query(text='traffic_statistics')
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
-    data_db = await get_real_users(session)
-    data_cmd = await check_statistics() 
-    text = await data_preparation(data_db, data_cmd)
+    data_db = await get_real_users(session) 
+    text = await data_preparation(data_db)
     await call.message.edit_text(text, reply_markup=back_button(), parse_mode='HTML')
 
 @router.callback_query(text='real_users')

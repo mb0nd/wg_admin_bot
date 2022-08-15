@@ -74,21 +74,3 @@ async def get_real_users(session: AsyncSession) -> List[User]:
     result = await session.execute(stmt)
     real_users = result.scalars().all()
     return real_users
-
-async def get_all_users(session: AsyncSession) -> List[User]:
-    stmt = select(User)
-    result = await session.execute(stmt)
-    users = result.scalars().all()
-    return users
-         
-"""
-Дублирует вышестоящую функцию из таблицы users по флагу is_baned... 
-Возможно оно будет более правильно в дальнейшем, пока юзаем отдельную таблицу
-________________________________________________________________________________
-async def get_ban_list_from_users_table(session_maker: AsyncSession) -> List:
-    async with session_maker() as session:
-        session: AsyncSession
-        stmt = select(distinct(User.user_id)).where(User.is_baned == True)
-        result = await session.execute(stmt)
-        ban_list = result.scalars().all()
-    return ban_list"""
