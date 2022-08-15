@@ -70,6 +70,19 @@ async def unblocked_user(key: str, ip: str, path_to_wg: str) -> None:
     with open(f'{path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
         f.write(output_text)
 
+async def remove_user(user: User, path_to_wg: str):
+    os.system(f'wg set wg0 peer {user.pub_key} remove')
+    with open(f'{path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
+        input_text = f.readlines()
+    for i in range(len(input_text)):
+        if user.pub_key in input_text[i]:
+            for _ in range(3):
+                input_text.pop(i-1)
+            break
+    with open(f'{path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
+        f.writelines(input_text)
+    os.system(f'rm -rf {path_to_wg}{user.user_name}')
+
 async def check_statistics() -> List[Dict]:
     def str_to_dict(s: str):
         s.strip()
