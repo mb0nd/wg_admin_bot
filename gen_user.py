@@ -2,6 +2,8 @@ import os
 import subprocess
 from typing import Dict, List, Tuple
 from aiogram.types import FSInputFile
+from typing import Union
+from db.models import User
 
 async def genKeys (name :str, path_to_wg: str) -> None:
     try:
@@ -88,7 +90,7 @@ async def check_statistics() -> List[Dict]:
         peers.append(peer)
     return peers  
 
-async def data_preparation(data_db: list, data_cmd: list) -> str:
+async def data_preparation(data_db: Union[list, User], data_cmd: list) -> str:
     res=''
     for peer in data_cmd:
         for user in data_db:
@@ -98,6 +100,8 @@ async def data_preparation(data_db: list, data_cmd: list) -> str:
                 else:
                     res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n{'_'*50}\n"
                 break
+    if not res:
+        return 'Нет такого пользователя в wireguard'
     return res
 
 

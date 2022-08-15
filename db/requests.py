@@ -51,6 +51,12 @@ async def check_user_by_id(id: int, session: AsyncSession) -> int:
     user = result.scalars().first()
     return user
 
+async def get_user_by_id(id: int, session: AsyncSession) -> User:
+    stmt = select(User).where(User.user_id == id)
+    result = await session.execute(stmt)
+    user = result.first()
+    return user
+
 async def get_blocked_users(session: AsyncSession) -> List[User]:
     stmt = select(User.user_id, User.user_name).where(User.is_baned==True, User.pub_key=="0", User.ip=="0")
     result = await session.execute(stmt)

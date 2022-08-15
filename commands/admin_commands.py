@@ -6,7 +6,7 @@ from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
 from gen_user import addUser, check_statistics, data_preparation
 from db.requests import create_user, ban_user, uban_user, delete_user_by_id, get_real_users
-from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu
+from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
 
 router = Router()
@@ -46,22 +46,26 @@ async def back_admin_menu(call: types.CallbackQuery) -> None:
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
     data_db = await get_real_users(session)
     data_cmd = await check_statistics() 
-    res = await data_preparation(data_db, data_cmd)
-    await call.message.edit_text(res, reply_markup=back_button(), parse_mode='HTML')
+    text = await data_preparation(data_db, data_cmd)
+    await call.message.edit_text(text, reply_markup=back_button(), parse_mode='HTML')
 
 @router.callback_query(text='real_users')
 async def admin_real_users(call: types.CallbackQuery, session: AsyncSession) -> None:
     await messages_for_real_user_menu(call, session)
 
+@router.callback_query(UserCallbackData.filter(F.action =='user_manage'))
+async def admin_manage_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData) -> None:
+    await return_user_menu(call, session, callback_data)
+    
 @router.callback_query(UserCallbackData.filter(F.action =='ban_user'))
 async def admin_ban_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings) -> None:
     await ban_user(callback_data, session, env.path_to_wg)
-    await messages_for_real_user_menu(call, session)
-
+    await return_user_menu(call, session, callback_data)
+    
 @router.callback_query(UserCallbackData.filter(F.action =='uban_user'))
 async def admin_uban_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings) -> None:
     await uban_user(callback_data, session, env.path_to_wg)
-    await messages_for_real_user_menu(call, session)
+    await return_user_menu(call, session, callback_data)
 
 @router.callback_query(text='block_users')
 async def admin_blocked_users(call: types.CallbackQuery, session: AsyncSession) -> None:

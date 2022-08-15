@@ -1,5 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.inline_keyboard_button import InlineKeyboardButton
+from db.models import User
 from user_callback import UserCallbackData
 
 def getvpn():
@@ -33,11 +34,18 @@ def block_users_menu(user_list: list):
 def real_users_menu(user_list: list):
     builder = InlineKeyboardBuilder()
     for user in user_list:
-        if user.is_baned:
-            builder.row(InlineKeyboardButton(text=f"{user.user_name} : разблокировать ✅", callback_data=UserCallbackData(action='uban_user', id=user.user_id).pack()))
-        else:
-            builder.row(InlineKeyboardButton(text=f"{user.user_name} : заблокировать ❌", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text=f"{user.user_name}", callback_data=UserCallbackData(action='user_manage', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
+    return builder.as_markup(resize_keyboard=True)
+
+def one_user_menu(user: User):
+    builder = InlineKeyboardBuilder()
+    if user.is_baned:
+        builder.row(InlineKeyboardButton(text="разблокировать ✅", callback_data=UserCallbackData(action='uban_user', id=user.user_id).pack()))
+    else:
+        builder.row(InlineKeyboardButton(text="заблокировать 🚫", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
+    builder.row(InlineKeyboardButton(text="удалить ❌", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
+    builder.row(InlineKeyboardButton(text='< Назад', callback_data='real_users'))
     return builder.as_markup(resize_keyboard=True)
 
 def back_button():
