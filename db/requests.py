@@ -17,6 +17,11 @@ async def create_user(user_data: Dict, session: AsyncSession) -> None:
     session.add(user)
     await session.commit()
 
+async def delete_user_by_id(id: int, session: AsyncSession) -> None:
+    stmt = delete(User).where(User.user_id == id)
+    await session.execute(stmt)
+    await session.commit()
+
 async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
     stmt = select(User.pub_key).where(User.is_baned==False, User.user_id==callback_data.id)
     result = await session.execute(stmt)
@@ -61,13 +66,7 @@ async def get_blocked_users(session: AsyncSession) -> List[User]:
     stmt = select(User.user_id, User.user_name).where(User.is_baned==True, User.pub_key=="0", User.ip=="0")
     result = await session.execute(stmt)
     blocked_users = result.all()
-    print(blocked_users, type(blocked_users))
     return blocked_users
-
-async def delete_user_by_id(id: int, session: AsyncSession) -> None:
-    stmt = delete(User).where(User.user_id == id)
-    await session.execute(stmt)
-    await session.commit()
 
 async def get_real_users(session: AsyncSession) -> List[User]:
     stmt = select(User).where(User.pub_key!="0", User.ip!="0")
