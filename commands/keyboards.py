@@ -21,6 +21,7 @@ def admin_menu():
     builder.row(InlineKeyboardButton(text='Потребление трафика 📈', callback_data='traffic_statistics'))
     builder.row(InlineKeyboardButton(text='Список реальных пользователей 📗', callback_data='real_users'))
     builder.row(InlineKeyboardButton(text='Список заблокированных пользователей 📕', callback_data='block_users'))
+    builder.row(InlineKeyboardButton(text='Перезапустить WG 🔌', callback_data='restart_wg'))
     builder.row(InlineKeyboardButton(text='Закрыть ❌', callback_data='close'))
     return builder.as_markup(resize_keyboard=True)
 

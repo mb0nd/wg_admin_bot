@@ -117,3 +117,14 @@ async def data_preparation(data_db: Union[list, User]) -> str:
     if not res:
         return 'Нет такого пользователя в wireguard'
     return res
+
+async def restart_wg() -> tuple:
+    os.system('systemctl restart wg-quick@wg0')
+    try:
+        output = subprocess.check_output(['systemctl', 'status', 'wg-quick@wg0']).decode('utf-8').splitlines()[2]
+        if 'Active: active' in output:
+            return ("Сервер перезапущен", True)
+        else:
+            return (f"Что то пошло не так <code>{output}</code>", False)
+    except subprocess.CalledProcessError:
+        return (f"Что то пошло не так", False)

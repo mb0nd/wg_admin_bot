@@ -5,7 +5,7 @@ from db.models import User
 from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
-from gen_user import addUser, data_preparation, remove_user
+from gen_user import addUser, data_preparation, remove_user, restart_wg
 from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
@@ -83,6 +83,14 @@ async def admin_delete_blocked_user(call: types.CallbackQuery, session: AsyncSes
     await delete_user_by_id(callback_data.id, session)
     await messages_for_blocked_user_menu(call, session)
 
+@router.callback_query(text='restart_wg')
+async def admin_restart_wg(call: types.CallbackQuery) -> None:
+    text, status = await restart_wg()
+    if status:
+        return await call.answer(text, show_alert=True)
+    else:
+        await call.message.answer(text, parse_mode='HTML')
+
 @router.callback_query(text='close')
 async def admin_close_menu(call: types.CallbackQuery) -> None:
-    return await call.message.delete()
+    await call.message.delete()
