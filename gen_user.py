@@ -106,16 +106,17 @@ async def check_statistics() -> List[Dict]:
 async def data_preparation(data_db: Union[list, User]) -> str:
     data_cmd = await check_statistics()
     res=''
+    print(data_cmd)
     for peer in data_cmd:
         for user in data_db:
-            if peer['peer'] == user.pub_key:
+            if peer.get('peer') == user.pub_key:
                 if peer.get('endpoint'):
                     res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n<b>Внешний адрес/порт</b>: <code>{peer['endpoint']}</code>\n<b>Появлялся:</b> <code>{peer['latest handshake']}</code>\n<b>Трафик:</b> <code>{peer['transfer']}</code>\n{'_'*50}\n"
                 else:
                     res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n{'_'*50}\n"
                 break
     if not res:
-        return 'Нет такого пользователя в wireguard'
+        return 'Не возможно отобразить статистику, пользователь(и) не найден в wireguard'
     return res
 
 async def restart_wg() -> tuple:

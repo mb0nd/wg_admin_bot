@@ -29,6 +29,8 @@ async def main() -> None:
 
     #создает таблицы по классам
     await proceed_schemas(async_engine, Base.metadata)
+    
+    await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, session_maker=session_maker, env=env, in_verification=in_verification)
 
 if __name__ == '__main__': 
