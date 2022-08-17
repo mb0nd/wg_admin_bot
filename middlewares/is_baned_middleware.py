@@ -17,7 +17,7 @@ class IsBanedMiddleware(BaseMiddleware):
         if not user:
             return await handler(event, data)
         session: AsyncSession = data['session']
-        stmt = select(User.user_id).where(User.is_baned==True, User.user_id==data['event_from_user'].id)
+        stmt = select(User.user_id).where(User.is_baned==True, User.user_id==user.id)
         result = await session.execute(stmt)
         find_baned_user: int = result.first()
         if find_baned_user is not None:

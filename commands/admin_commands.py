@@ -37,11 +37,11 @@ async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, c
 
 @router.message(commands=['admin'])
 async def admin_command(message: types.Message) -> None:
-    await message.answer("You're an admin!", reply_markup=admin_menu())
+    await message.answer("<b>Меню администратора:</b>", reply_markup=admin_menu(), parse_mode='HTML')
 
 @router.callback_query(text='admin')
 async def back_admin_menu(call: types.CallbackQuery) -> None:
-    await call.message.edit_text("You're an admin!", reply_markup=admin_menu())
+    await call.message.edit_text("<b>Меню администратора:</b>", reply_markup=admin_menu(), parse_mode='HTML')
 
 @router.callback_query(text='traffic_statistics')
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
