@@ -72,7 +72,7 @@ async def admin_delete_user(call: types.CallbackQuery, session: AsyncSession, ca
     user: User = await get_user_by_id(callback_data.id, session)
     await remove_user(*user, env.path_to_wg)
     await delete_user_by_id(callback_data.id, session)
-    await messages_for_blocked_user_menu(call, session)
+    await messages_for_real_user_menu(call, session)
 
 @router.callback_query(text='block_users')
 async def admin_blocked_users(call: types.CallbackQuery, session: AsyncSession) -> None:
