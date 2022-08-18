@@ -31,10 +31,10 @@ async def main() -> None:
     await proceed_schemas(async_engine, Base.metadata)
     
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, session_maker=session_maker, env=env, in_verification=in_verification)
+    await dp.start_polling(bot, session_maker=session_maker, env=env, in_verification=in_verification, allowed_updates=dp.resolve_used_update_types())
 
 if __name__ == '__main__': 
     try:
-        asyncio.run(main())
+        asyncio.get_event_loop().run_until_complete(main()) #на замену asyncio.run() вроде как фиксит ошибку с ssl
     except (KeyboardInterrupt, SystemExit):
         print('Bot stopped')
