@@ -1,10 +1,11 @@
 import asyncio
 import logging
 from aiogram import Dispatcher, Bot, F
+from commands.admin_commands.main import router as admin_router
+from commands.user_commands import router as user_router
 from env_reader import env
 from middlewares.is_baned_middleware import IsBanedMiddleware
 from middlewares.db_session_middleware import DbSessionMiddleware
-from commands import user_commands, admin_commands
 from db import Base, create_async_engine, get_session_maker, proceed_schemas
 
 
@@ -21,9 +22,9 @@ async def main() -> None:
 
     # Мидлварь с проверкой на БАН проверяет все события
     dp.update.outer_middleware.register(IsBanedMiddleware())
-    admin_commands.router.message.filter(F.from_user.id == env.admin_id)
-    dp.include_router(admin_commands.router)
-    dp.include_router(user_commands.router)
+    admin_router.message.filter(F.from_user.id == env.admin_id)
+    dp.include_router(admin_router)
+    dp.include_router(user_router)
 
     in_verification = set()
 
