@@ -16,4 +16,3 @@ async def admin_command(message: types.Message) -> None:
 @router.callback_query(text='admin')
 async def back_admin_menu(call: types.CallbackQuery) -> None:
     await call.message.edit_text("<b>Меню администратора:</b>", reply_markup=admin_menu(), parse_mode='HTML')
-
