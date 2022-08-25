@@ -17,49 +17,37 @@ async def create_user(user_data: Dict, session: AsyncSession) -> None:
     session.add(user)
     await session.commit()
 
+async def decline_access_user(callback_data: UserCallbackData, session: AsyncSession) -> None:
+    user = User(
+        user_id = callback_data.id,
+        user_name = callback_data.name,
+        is_baned = True
+    )
+    session.add(user)
+    await session.commit()
+
 async def delete_user_by_id(id: int, session: AsyncSession) -> None:
     stmt = delete(User).where(User.user_id == id)
     await session.execute(stmt)
     await session.commit()
-
-async def ban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
-    stmt = select(User.pub_key).where(User.is_baned==False, User.user_id==callback_data.id)
-    result = await session.execute(stmt)
-    user_pub_key = result.scalar()
-    if user_pub_key:
-        await blocked_user(user_pub_key, path_to_wg)
-        stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=True, updated_at=datetime.now())
-        await session.execute(stmt)
-        await session.commit()
-    else:
-        user = User(
-            user_id = callback_data.id,
-            user_name = callback_data.name,
-            is_baned = True
-        )
-        session.add(user)
-        await session.commit()
         
-async def uban_user(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
-    stmt = select(User.pub_key, User.ip).where(User.is_baned==True, User.user_id==callback_data.id)
+async def switch_user_ban_status(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
+    stmt = select(User.pub_key, User.ip, User.is_baned).where(User.user_id==callback_data.id)
     result = await session.execute(stmt)
-    pub_key, ip = result.first()
-    if pub_key:
+    pub_key, ip, ban_status = result.first()
+    if ban_status:
         await unblocked_user(pub_key, ip, path_to_wg)
-        stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=False, updated_at=datetime.now())
-        await session.execute(stmt)
-        await session.commit()
+    else:
+        await blocked_user(pub_key, path_to_wg)
+    stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=not ban_status, updated_at=datetime.now())
+    await session.execute(stmt)
+    await session.commit()
 
 async def switch_user_pay_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
     stmt = select(User.is_pay).where(User.user_id==callback_data.id)
     result = await session.execute(stmt)
     pay_status = result.scalar()
     stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=not pay_status, updated_at=datetime.now())
-    await session.execute(stmt)
-    await session.commit()
-
-async def no_pay_user(callback_data: UserCallbackData, session: AsyncSession) -> None:
-    stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=False, updated_at=datetime.now())
     await session.execute(stmt)
     await session.commit()
 

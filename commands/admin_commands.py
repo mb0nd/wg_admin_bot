@@ -7,7 +7,7 @@ from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
 from gen_user import addUser, data_preparation, remove_user, restart_wg
-from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users, get_pay_users, switch_user_pay_status
+from db.requests import create_user, get_user_by_id, delete_user_by_id, get_real_users, get_pay_users, switch_user_pay_status, decline_access_user, switch_user_ban_status
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
 
@@ -30,7 +30,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
 async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
     try:
-        await ban_user(callback_data, session, env.path_to_wg)
+        await decline_access_user(callback_data, session)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
     except IntegrityError:
         await call.answer('Не удалось забанить, что то пошло не так ...')
@@ -54,7 +54,7 @@ async def send_message_to_pay(call: types.CallbackQuery, session: AsyncSession, 
     else:
         await call.answer('Не кому отсылать, все халявщики.', show_alert=True)
 
-@router.callback_query(UserCallbackData.filter(F.action =='pay_user'))
+@router.callback_query(UserCallbackData.filter(F.action =='set_pay_status'))
 async def set_pay_status(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData):
     await switch_user_pay_status(callback_data, session)
     await return_user_menu(call, session, callback_data)
@@ -73,14 +73,9 @@ async def admin_real_users(call: types.CallbackQuery, session: AsyncSession) -> 
 async def admin_manage_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData) -> None:
     await return_user_menu(call, session, callback_data)
 
-@router.callback_query(UserCallbackData.filter(F.action =='ban_user'))
-async def admin_ban_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings) -> None:
-    await ban_user(callback_data, session, env.path_to_wg)
-    await return_user_menu(call, session, callback_data)
-    
-@router.callback_query(UserCallbackData.filter(F.action =='uban_user'))
-async def admin_uban_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings) -> None:
-    await uban_user(callback_data, session, env.path_to_wg)
+@router.callback_query(UserCallbackData.filter(F.action =='set_ban_status'))
+async def admin_set_user_ban_status(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings) -> None:
+    await switch_user_ban_status(callback_data, session, env.path_to_wg)
     await return_user_menu(call, session, callback_data)
 
 @router.callback_query(UserCallbackData.filter(F.action =='delete_user'))

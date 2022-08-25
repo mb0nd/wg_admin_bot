@@ -44,13 +44,13 @@ def real_users_menu(user_list: list) -> InlineKeyboardMarkup:
 def one_user_menu(user: User) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     if user.is_baned:
-        builder.row(InlineKeyboardButton(text="разблокировать ✅", callback_data=UserCallbackData(action='uban_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="разблокировать ✅", callback_data=UserCallbackData(action='set_ban_status', id=user.user_id).pack()))
     else:
-        builder.row(InlineKeyboardButton(text="заблокировать 🚫", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="заблокировать 🚫", callback_data=UserCallbackData(action='set_ban_status', id=user.user_id).pack()))
     if user.is_pay:
-        builder.row(InlineKeyboardButton(text="Сделать VIP 👍🏻", callback_data=UserCallbackData(action='pay_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="Сделать VIP 👍🏻", callback_data=UserCallbackData(action='set_pay_status', id=user.user_id).pack()))
     else:
-        builder.row(InlineKeyboardButton(text="Убрать из VIP 👎🏻", callback_data=UserCallbackData(action='pay_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="Убрать из VIP 👎🏻", callback_data=UserCallbackData(action='set_pay_status', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text="удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='real_users'))
     return builder.as_markup(resize_keyboard=True)
