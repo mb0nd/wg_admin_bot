@@ -73,3 +73,9 @@ async def get_real_users(session: AsyncSession) -> List[User]:
     result = await session.execute(stmt)
     real_users = result.scalars().all()
     return real_users
+
+async def get_pay_users(session: AsyncSession) -> List[int]:
+    stmt = select(User.user_id).where(User.is_pay == True)
+    result = await session.execute(stmt)
+    pay_users = result.scalars().all()
+    return pay_users

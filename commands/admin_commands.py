@@ -6,7 +6,7 @@ from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
 from gen_user import addUser, data_preparation, remove_user, restart_wg
-from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users
+from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users, get_pay_users
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
 
@@ -42,6 +42,17 @@ async def admin_command(message: types.Message) -> None:
 @router.callback_query(text='admin')
 async def back_admin_menu(call: types.CallbackQuery) -> None:
     await call.message.edit_text("<b>Меню администратора:</b>", reply_markup=admin_menu(), parse_mode='HTML')
+
+@router.callback_query(text='send_message_to_pay')
+async def send_message_to_pay(call: types.CallbackQuery, session: AsyncSession, bot: Bot):
+    pay_users = await get_pay_users(session)
+    print(pay_users, type(pay_users)) # **************************************************************
+    if pay_users:
+        for user in pay_users:
+            await bot.send_message(chat_id=user, text= f"Срок аренды сервера подходит к концу, пора бы оплатить 🙂")
+        return await call.answer('Сообщение об оплате разослано.', show_alert=True)
+    else:
+        return await call.answer('Не кому отсылать, все халявщики.', show_alert=True)
 
 @router.callback_query(text='traffic_statistics')
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):

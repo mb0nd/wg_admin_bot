@@ -19,6 +19,7 @@ def get_accept_buttons(user_id, user_name) -> InlineKeyboardMarkup:
 
 def admin_menu() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Отправить оповещение об оплате 💰', callback_data='send_message_to_pay'))
     builder.row(InlineKeyboardButton(text='Потребление трафика 📈', callback_data='traffic_statistics'))
     builder.row(InlineKeyboardButton(text='Список реальных пользователей 📗', callback_data='real_users'))
     builder.row(InlineKeyboardButton(text='Список заблокированных пользователей 📕', callback_data='block_users'))
@@ -46,6 +47,10 @@ def one_user_menu(user: User) -> InlineKeyboardMarkup:
         builder.row(InlineKeyboardButton(text="разблокировать ✅", callback_data=UserCallbackData(action='uban_user', id=user.user_id).pack()))
     else:
         builder.row(InlineKeyboardButton(text="заблокировать 🚫", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
+    if user.is_pay:
+        builder.row(InlineKeyboardButton(text="Сделать VIP 👍🏻", callback_data=UserCallbackData(action='no_pay_user', id=user.user_id).pack()))
+    else:
+        builder.row(InlineKeyboardButton(text="Убрать из VIP 👎🏻", callback_data=UserCallbackData(action='to_pay_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text="удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='real_users'))
     return builder.as_markup(resize_keyboard=True)
