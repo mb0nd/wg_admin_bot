@@ -50,6 +50,19 @@ async def uban_user(callback_data: UserCallbackData, session: AsyncSession, path
         await session.execute(stmt)
         await session.commit()
 
+async def switch_user_pay_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
+    stmt = select(User.is_pay).where(User.user_id==callback_data.id)
+    result = await session.execute(stmt)
+    pay_status = result.scalar()
+    stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=not pay_status, updated_at=datetime.now())
+    await session.execute(stmt)
+    await session.commit()
+
+async def no_pay_user(callback_data: UserCallbackData, session: AsyncSession) -> None:
+    stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=False, updated_at=datetime.now())
+    await session.execute(stmt)
+    await session.commit()
+
 async def check_user_by_id(id: int, session: AsyncSession) -> int:
     stmt = select(User.user_id).where(User.user_id == id)
     result = await session.execute(stmt)

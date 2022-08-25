@@ -106,7 +106,6 @@ async def check_statistics() -> List[Dict]:
 async def data_preparation(data_db: Union[list, User]) -> str:
     data_cmd = await check_statistics()
     res=''
-    print(data_cmd)
     for peer in data_cmd:
         for user in data_db:
             if peer.get('peer') == user.pub_key:

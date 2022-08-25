@@ -1,3 +1,4 @@
+from cgitb import text
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -6,7 +7,7 @@ from user_callback import UserCallbackData
 from env_reader import Settings
 from commands.keyboards import admin_menu, back_button
 from gen_user import addUser, data_preparation, remove_user, restart_wg
-from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users, get_pay_users
+from db.requests import create_user, ban_user, get_user_by_id, uban_user, delete_user_by_id, get_real_users, get_pay_users, switch_user_pay_status
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu, return_user_menu
 
 
@@ -46,13 +47,17 @@ async def back_admin_menu(call: types.CallbackQuery) -> None:
 @router.callback_query(text='send_message_to_pay')
 async def send_message_to_pay(call: types.CallbackQuery, session: AsyncSession, bot: Bot):
     pay_users = await get_pay_users(session)
-    print(pay_users, type(pay_users)) # **************************************************************
     if pay_users:
         for user in pay_users:
             await bot.send_message(chat_id=user, text= f"Срок аренды сервера подходит к концу, пора бы оплатить 🙂")
-        return await call.answer('Сообщение об оплате разослано.', show_alert=True)
+        await call.answer('Сообщение об оплате разослано.', show_alert=True)
     else:
-        return await call.answer('Не кому отсылать, все халявщики.', show_alert=True)
+        await call.answer('Не кому отсылать, все халявщики.', show_alert=True)
+
+@router.callback_query(UserCallbackData.filter(F.action =='pay_user'))
+async def set_pay_status(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData):
+    await switch_user_pay_status(callback_data, session)
+    await return_user_menu(call, session, callback_data)
 
 @router.callback_query(text='traffic_statistics')
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):

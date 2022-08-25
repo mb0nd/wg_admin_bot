@@ -48,9 +48,9 @@ def one_user_menu(user: User) -> InlineKeyboardMarkup:
     else:
         builder.row(InlineKeyboardButton(text="заблокировать 🚫", callback_data=UserCallbackData(action='ban_user', id=user.user_id).pack()))
     if user.is_pay:
-        builder.row(InlineKeyboardButton(text="Сделать VIP 👍🏻", callback_data=UserCallbackData(action='no_pay_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="Сделать VIP 👍🏻", callback_data=UserCallbackData(action='pay_user', id=user.user_id).pack()))
     else:
-        builder.row(InlineKeyboardButton(text="Убрать из VIP 👎🏻", callback_data=UserCallbackData(action='to_pay_user', id=user.user_id).pack()))
+        builder.row(InlineKeyboardButton(text="Убрать из VIP 👎🏻", callback_data=UserCallbackData(action='pay_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text="удалить ❌", callback_data=UserCallbackData(action='delete_user', id=user.user_id).pack()))
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='real_users'))
     return builder.as_markup(resize_keyboard=True)

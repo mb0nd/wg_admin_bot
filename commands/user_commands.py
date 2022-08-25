@@ -34,7 +34,7 @@ async def get_vpn(
         reply_markup=get_accept_buttons(call.from_user.id, call.from_user.username)
     )
     await call.message.delete()
-    return await call.answer(
+    await call.answer(
         'Ваш запрос отправлен на рассмотрение владельцу сервиса.',
         show_alert=True
     )
