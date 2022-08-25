@@ -5,14 +5,14 @@ from aiogram.types import FSInputFile
 from typing import Union
 from db.models import User
 
-async def genKeys (name :str, path_to_wg: str) -> None:
+async def gen_keys (name :str, path_to_wg: str) -> None:
     try:
         os.mkdir(f"{path_to_wg}{name}")
     except FileExistsError:
         pass
     os.system (f"wg genkey | tee {path_to_wg}{name}/{name}_privatekey | wg pubkey > {path_to_wg}{name}/{name}_pubkey")
 
-async def getEnv(name :str, path_to_wg: str) -> Dict:
+async def get_env(name :str, path_to_wg: str) -> Dict:
     env={}
     with open(f'{path_to_wg}{name}/{name}_pubkey', 'r', encoding='utf-8') as file:
         env['publickey'] = file.read().strip()
@@ -27,12 +27,12 @@ async def getEnv(name :str, path_to_wg: str) -> Dict:
     env['hostname'] = os.uname().nodename
     return env
     
-async def setNewPeer(publickey :str, current_ip :str, path_to_wg: str) -> None:
+async def set_new_peer(publickey :str, current_ip :str, path_to_wg: str) -> None:
     with open(f'{path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
         file.write(f"\n[Peer]\nPublicKey = {publickey}\nAllowedIPs = {current_ip}/32")
     os.system ( f"wg set wg0 peer {publickey} allowed-ips {current_ip}/32")
 
-async def generatePeerConfig(name: str,data: dict, port: str, path_to_wg: str) -> None:
+async def generate_peer_config(name: str,data: dict, port: str, path_to_wg: str) -> None:
     with open(f'{path_to_wg}{name}/{name}.conf', 'w', encoding='utf-8') as file:
         file.write(
             f"[Interface]\nPrivateKey = {data['privatekey']}\nAddress = {data['current_ip']}/32\n"
@@ -41,16 +41,16 @@ async def generatePeerConfig(name: str,data: dict, port: str, path_to_wg: str) -
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
         )
 
-async def writeLastIp(ip :str) -> None:
+async def write_last_ip(ip :str) -> None:
     with open('last_ip', 'w', encoding='utf-8') as file:
         file.write(ip)
 
-async def addUser(name :str, port: str, path_to_wg: str) -> Tuple:
-    await genKeys(name, path_to_wg)
-    data = await getEnv(name, path_to_wg)
-    await setNewPeer(data['publickey'], data['current_ip'], path_to_wg)
-    await generatePeerConfig(name, data, port, path_to_wg)
-    await writeLastIp(data['current_ip'])
+async def add_user(name :str, port: str, path_to_wg: str) -> Tuple:
+    await gen_keys(name, path_to_wg)
+    data = await get_env(name, path_to_wg)
+    await set_new_peer(data['publickey'], data['current_ip'], path_to_wg)
+    await generate_peer_config(name, data, port, path_to_wg)
+    await write_last_ip(data['current_ip'])
     config = FSInputFile(f'{path_to_wg}{name}/{name}.conf', filename=f'{name}.conf')
     return (data['publickey'], data['current_ip'], config)
 

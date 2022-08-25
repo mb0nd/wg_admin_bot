@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
 from env_reader import Settings
 from sqlalchemy.exc import IntegrityError
-from gen_user import addUser
+from gen_user import add_user
 from db.requests import create_user, decline_access_user
 
 router = Router()
@@ -11,7 +11,7 @@ router = Router()
 @router.callback_query(UserCallbackData.filter(F.action =='accept_user'))
 async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
     print("Мы сюда зашли")
-    pub_key, ip, config = await addUser(callback_data.name, env.listen_port, env.path_to_wg) 
+    pub_key, ip, config = await add_user(callback_data.name, env.listen_port, env.path_to_wg) 
     user_data = {
         'id': callback_data.id,
         'name': callback_data.name,
