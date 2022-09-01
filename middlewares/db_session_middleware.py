@@ -4,6 +4,7 @@ from aiogram.types import Update
 
 
 class DbSessionMiddleware(BaseMiddleware):
+    """Прокидывает сессию с БД в хендлеры"""
     async def __call__(
         self,
         handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],

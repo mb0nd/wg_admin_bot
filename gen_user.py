@@ -6,6 +6,12 @@ from typing import Union
 from db.models import User
 
 async def gen_keys (name :str, path_to_wg: str) -> None:
+    """Генерирует новую пару ключей для Wireguard
+
+    Args:
+        name (str): имя пользователя
+        path_to_wg (str): путь до папки установки Wireguard
+    """
     try:
         os.mkdir(f"{path_to_wg}{name}")
     except FileExistsError:
@@ -13,6 +19,15 @@ async def gen_keys (name :str, path_to_wg: str) -> None:
     os.system (f"wg genkey | tee {path_to_wg}{name}/{name}_privatekey | wg pubkey > {path_to_wg}{name}/{name}_pubkey")
 
 async def get_env(name :str, path_to_wg: str) -> Dict:
+    """Собирает словарь с данными о пользователе
+
+    Args:
+        name (str): имя пользователя
+        path_to_wg (str): путь до папки установки Wireguard
+
+    Returns:
+        Dict: данные пользователя
+    """
     env={}
     with open(f'{path_to_wg}{name}/{name}_pubkey', 'r', encoding='utf-8') as file:
         env['publickey'] = file.read().strip()
@@ -28,11 +43,27 @@ async def get_env(name :str, path_to_wg: str) -> Dict:
     return env
     
 async def set_new_peer(publickey :str, current_ip :str, path_to_wg: str) -> None:
+    """Дописывает нового пользователя в корневой файл конфигурации Wireguard
+    и добавляет нвого пользователя в текущий инстанс Wireguard
+
+    Args:
+        publickey (str): публичный ключ пользователя
+        current_ip (str): назначенный пользователю ip
+        path_to_wg (str): путь до папки установки wireguard
+    """
     with open(f'{path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
         file.write(f"\n[Peer]\nPublicKey = {publickey}\nAllowedIPs = {current_ip}/32")
     os.system ( f"wg set wg0 peer {publickey} allowed-ips {current_ip}/32")
 
 async def generate_peer_config(name: str,data: dict, port: str, path_to_wg: str) -> None:
+    """Генерирует конфигурационный файл пользователя
+
+    Args:
+        name (str): имя пользователя
+        data (dict): данные пользователя
+        port (str): порт, который слушает Wireguard
+        path_to_wg (str): путь до папки установки Wireguard
+    """
     with open(f'{path_to_wg}{name}/{name}.conf', 'w', encoding='utf-8') as file:
         file.write(
             f"[Interface]\nPrivateKey = {data['privatekey']}\nAddress = {data['current_ip']}/32\n"
@@ -42,10 +73,21 @@ async def generate_peer_config(name: str,data: dict, port: str, path_to_wg: str)
         )
 
 async def write_last_ip(ip :str) -> None:
+    """Записывает последний использованный ip в файл"""
     with open('last_ip', 'w', encoding='utf-8') as file:
         file.write(ip)
 
 async def add_user(name :str, port: str, path_to_wg: str) -> Tuple:
+    """Непосредственно создает и добавляет в Wireguard нового пользователя
+
+    Args:
+        name (str): имя пользователя
+        port (str): порт, который слушает Wireguard
+        path_to_wg (str): путь до папки установки Wireguard
+
+    Returns:
+        Tuple: публичный ключ пользователя, его ip для записи в БД и конфигурационный файл для отправки пользователю
+    """
     await gen_keys(name, path_to_wg)
     data = await get_env(name, path_to_wg)
     await set_new_peer(data['publickey'], data['current_ip'], path_to_wg)
@@ -55,6 +97,12 @@ async def add_user(name :str, port: str, path_to_wg: str) -> Tuple:
     return (data['publickey'], data['current_ip'], config)
 
 async def blocked_user(key: str, path_to_wg: str) -> None:
+    """Заблокировать пользователя в Wireguard
+
+    Args:
+        key (str): публичный ключ
+        path_to_wg (str): путь к папке установки Wireguard
+    """
     os.system(f'wg set wg0 peer {key} remove')
     with open(f'{path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
         input_text = f.read()
@@ -63,6 +111,13 @@ async def blocked_user(key: str, path_to_wg: str) -> None:
         f.write(output_text)
 
 async def unblocked_user(key: str, ip: str, path_to_wg: str) -> None:
+    """Разблокировать пользователя в Wireguard
+
+    Args:
+        key (str): публичный ключ
+        ip (str): ip присвоенный пользователю
+        path_to_wg (str): путь к папке установки Wireguard
+    """
     os.system(f'wg set wg0 peer {key} allowed-ips {ip}/32')
     with open(f'{path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
         input_text = f.read()
@@ -71,6 +126,13 @@ async def unblocked_user(key: str, ip: str, path_to_wg: str) -> None:
         f.write(output_text)
 
 async def remove_user(user: User, path_to_wg: str):
+    """Удаляет пользователя из конфигов и инстанса Wireguard, 
+    а также связанные с ним папки и файлы
+
+    Args:
+        user (User): объект пользователя
+        path_to_wg (str): путь к папке установки Wireguard
+    """
     os.system(f'wg set wg0 peer {user.pub_key} remove')
     with open(f'{path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
         input_text = f.readlines()
@@ -84,6 +146,11 @@ async def remove_user(user: User, path_to_wg: str):
     os.system(f'rm -rf {path_to_wg}{user.user_name}')
 
 async def check_statistics() -> List[Dict]:
+    """Выполняет команду "wg show" и парсит вывод о каждом пользователе в словарь
+
+    Returns:
+        List[Dict]: данные об использовании страфика 
+    """
     def str_to_dict(s: str):
         s.strip()
         if not s:
@@ -104,6 +171,14 @@ async def check_statistics() -> List[Dict]:
     return peers  
 
 async def data_preparation(data_db: Union[list, User]) -> str:
+    """Собирает вместе данные из БД и консоли Wireguard и перегоняет в удобный вид
+
+    Args:
+        data_db (Union[list, User]): список объектов пользователей из БД
+
+    Returns:
+        str: подготовленная для вывода строка со статистикой пользователей
+    """
     data_cmd = await check_statistics()
     res=''
     for peer in data_cmd:
@@ -119,6 +194,12 @@ async def data_preparation(data_db: Union[list, User]) -> str:
     return res
 
 async def restart_wg() -> tuple:
+    """Выполняет команду перезапуска сервера Wireguard
+    и проверяет статус после
+
+    Returns:
+        tuple: строка ответа админу и статус выполненеия
+    """
     os.system('systemctl restart wg-quick@wg0')
     try:
         output = subprocess.check_output(['systemctl', 'status', 'wg-quick@wg0']).decode('utf-8').splitlines()[2]

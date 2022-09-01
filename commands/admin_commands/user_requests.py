@@ -10,7 +10,6 @@ router = Router()
 
 @router.callback_query(UserCallbackData.filter(F.action =='accept_user'))
 async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
-    print("Мы сюда зашли")
     pub_key, ip, config = await add_user(callback_data.name, env.listen_port, env.path_to_wg) 
     user_data = {
         'id': callback_data.id,

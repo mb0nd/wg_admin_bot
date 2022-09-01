@@ -7,6 +7,9 @@ from db.models import User
 
 
 class IsBanedMiddleware(BaseMiddleware):
+    """Проверяет каждый запрос от пользователя на предмет бана этого пользователя
+       если забанен, сбрасывает обработку запроса
+    """
     async def __call__(
         self, 
         handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]], 
