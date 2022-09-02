@@ -23,7 +23,6 @@ async def get_vpn(
     in_verification: set
 ):
     user = await check_user_by_id(call.from_user.id, session)
-    print(user)
     if user:
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return
