@@ -19,7 +19,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     }
     await create_user(user_data, session)
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-    await bot.send_document(callback_data.id, config, )
+    await bot.send_document(callback_data.id, config)
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
