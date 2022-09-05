@@ -141,6 +141,7 @@ async def remove_user(user: User, path_to_wg: str):
             for _ in range(3):
                 input_text.pop(i-1)
             break
+    input_text[-1] = input_text[-1].rstrip()
     with open(f'{path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
         f.writelines(input_text)
     os.system(f'rm -rf {path_to_wg}{user.user_name}')
