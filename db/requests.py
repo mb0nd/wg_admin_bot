@@ -3,7 +3,8 @@ from datetime import datetime
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
-from gen_user import blocked_user, unblocked_user
+#from gen_user import blocked_user, unblocked_user
+from WgUser import WgUser
 from .models import User
 
 
@@ -50,7 +51,7 @@ async def delete_user_by_id(id: int, session: AsyncSession) -> None:
     await session.execute(stmt)
     await session.commit()
         
-async def switch_user_ban_status(callback_data: UserCallbackData, session: AsyncSession, path_to_wg: str) -> None:
+async def switch_user_ban_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
     """Изменить статус пользователя в БД (забанен / разбанен) 
        в зависимости от текущего состояние меняется на противоположное
 
@@ -62,10 +63,7 @@ async def switch_user_ban_status(callback_data: UserCallbackData, session: Async
     stmt = select(User.pub_key, User.ip, User.is_baned).where(User.user_id==callback_data.id)
     result = await session.execute(stmt)
     pub_key, ip, ban_status = result.first()
-    if ban_status:
-        await unblocked_user(pub_key, ip, path_to_wg)
-    else:
-        await blocked_user(pub_key, path_to_wg)
+    await WgUser.switch_user_blocked_status(ip, pub_key, ban_status)
     stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=not ban_status, updated_at=datetime.now())
     await session.execute(stmt)
     await session.commit()

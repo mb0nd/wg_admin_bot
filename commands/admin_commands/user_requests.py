@@ -3,14 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
 from env_reader import Settings
 from sqlalchemy.exc import IntegrityError
-#from gen_user import add_user
 from WgUser import WgUser
 from db.requests import create_user, decline_access_user
 
 router = Router()
 
 @router.callback_query(UserCallbackData.filter(F.action =='accept_user'))
-async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
+async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bot: Bot, callback_data: UserCallbackData, in_verification: set) -> None:
     user = WgUser(callback_data.name)
     pub_key, ip, config = await user.add_user()
     user_data = {
@@ -25,7 +24,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))
-async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, env: Settings, in_verification: set) -> None:
+async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, in_verification: set) -> None:
     try:
         await decline_access_user(callback_data, session)
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
