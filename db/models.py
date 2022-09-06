@@ -1,6 +1,6 @@
 from sqlalchemy import TIMESTAMP, BigInteger, Column, String, Boolean
 from datetime import datetime
-from .base import Base
+from db.base import Base
 
 
 class User(Base):
@@ -13,6 +13,3 @@ class User(Base):
     updated_at = Column(TIMESTAMP, default = datetime.now())
     is_baned = Column(Boolean, default = False)
     is_pay = Column(Boolean, default = True)
-
-    def __str__(self) -> str:
-        return f"<User:{self.user_id}>"
