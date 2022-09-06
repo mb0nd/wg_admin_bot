@@ -3,8 +3,7 @@ from datetime import datetime
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
-#from gen_user import blocked_user, unblocked_user
-from WgUser import WgUser
+from wg_user import WgUser
 from .models import User
 
 

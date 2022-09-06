@@ -1,14 +1,15 @@
 from aiogram import types
 from user_callback import UserCallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
+from wg_services import WgServices
 from db.requests import get_blocked_users, get_real_users, get_user_by_id
 from commands.keyboards import block_users_menu, real_users_menu, one_user_menu
-from gen_user import data_preparation
+
 
 
 async def return_user_menu(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData):
     user = await get_user_by_id(callback_data.id, session)
-    text = await data_preparation(user)
+    text = await WgServices.data_preparation(user)
     await call.message.edit_text(text, reply_markup=one_user_menu(*user), parse_mode='HTML')
 
 async def messages_for_real_user_menu(call: types.CallbackQuery, session: AsyncSession):

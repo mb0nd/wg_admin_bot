@@ -2,7 +2,7 @@ from aiogram import Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
 from user_callback import UserCallbackData
 from db.models import User
-from WgUser import WgUser
+from wg_user import WgUser
 from db.requests import get_user_by_id, delete_user_by_id, switch_user_pay_status, switch_user_ban_status
 from commands.returned_messages import messages_for_real_user_menu, return_user_menu
 
