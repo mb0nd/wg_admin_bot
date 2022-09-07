@@ -1,7 +1,7 @@
 from aiogram import Bot, Router, types
 from sqlalchemy.ext.asyncio import AsyncSession
 from commands.keyboards import getvpn, get_accept_buttons
-from env_reader import Settings
+from modules.env_reader import Settings
 from db.requests import check_user_by_id
 
 

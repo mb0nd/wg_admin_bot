@@ -1,9 +1,8 @@
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
-from user_callback import UserCallbackData
-from env_reader import Settings
+from modules.user_callback import UserCallbackData
 from sqlalchemy.exc import IntegrityError
-from wg_user import WgUser
+from modules.wg_user import WgUser
 from db.requests import create_user, decline_access_user
 
 router = Router()

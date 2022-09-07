@@ -2,9 +2,9 @@ from typing import  Dict, List
 from datetime import datetime
 from sqlalchemy import select, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from user_callback import UserCallbackData
-from wg_user import WgUser
-from .models import User
+from modules.user_callback import UserCallbackData
+from modules.wg_user import WgUser
+from db.models import User
 
 
 async def create_user(user_data: Dict, session: AsyncSession) -> None:

@@ -2,7 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.inline_keyboard_markup import InlineKeyboardMarkup
 from aiogram.types.inline_keyboard_button import InlineKeyboardButton
 from db.models import User
-from user_callback import UserCallbackData
+from modules.user_callback import UserCallbackData
 
 def getvpn() -> InlineKeyboardMarkup:
     return InlineKeyboardBuilder().button(

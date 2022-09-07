@@ -1,7 +1,7 @@
 from aiogram import types
-from user_callback import UserCallbackData
+from modules.user_callback import UserCallbackData
 from sqlalchemy.ext.asyncio import AsyncSession
-from wg_services import WgServices
+from modules.wg_services import WgServices
 from db.requests import get_blocked_users, get_real_users, get_user_by_id
 from commands.keyboards import block_users_menu, real_users_menu, one_user_menu
 

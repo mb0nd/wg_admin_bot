@@ -1,7 +1,7 @@
 from typing import Tuple
 from aiogram.types import FSInputFile
 from db.models import User
-from env_reader import env
+from modules.env_reader import env
 import os
 import subprocess
 
