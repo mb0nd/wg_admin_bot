@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from alembic import context
 
 from db.base import metadata
-from env_reader import env as conf
+from modules.env_reader import env as conf
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
