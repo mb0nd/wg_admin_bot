@@ -27,6 +27,9 @@ async def get_vpn(
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return
     in_verification.add(call.from_user.id)
+    if call.from_user.username is None:
+        call.from_user.username = call.from_user.id
+
     await bot.send_message(
         chat_id=env.admin_id,
         text= f"@{call.from_user.username} ({call.from_user.full_name}) отправил запрос на доступ.",
