@@ -1,25 +1,15 @@
 from typing import  Dict, List
 from datetime import datetime
-from sqlalchemy import select, update, delete
+from ipaddress import IPv4Address
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from modules.user_callback import UserCallbackData
 from modules.wg_user import WgUser
 from db.models import User
 
 
-async def create_user(user_data: Dict, session: AsyncSession) -> None:
-    """Создание записи о новом пользователе в БД
-
-    Args:
-        user_data (Dict): словарь с данными о пользователе
-        session (AsyncSession): сессия с БД
-    """
-    user = User(
-        user_id = user_data['id'],
-        user_name = user_data['name'],
-        pub_key = user_data['pub_key'],
-        ip = user_data['ip']
-    )
+async def write_new_user(user: User, session: AsyncSession) -> None:
+    """Создание записи о новом пользователе в БД"""
     session.add(user)
     await session.commit()
 
@@ -106,7 +96,9 @@ async def get_user_by_id(id: int, session: AsyncSession) -> User:
 
     Returns:
         User: объект пользователя
-    """
+     """
+    #вариант заменить на user = await session.get(User, id)
+   
     stmt = select(User).where(User.user_id == id)
     result = await session.execute(stmt)
     user = result.first()
@@ -156,3 +148,16 @@ async def get_pay_users(session: AsyncSession) -> List[int]:
     result = await session.execute(stmt)
     pay_users = result.scalars().all()
     return pay_users
+
+async def get_next_ip(session: AsyncSession) -> str:
+    """Возвращает следующий за максимальным ip адрес из БД
+
+    Args:
+        session (AsyncSession): сессия с БД
+
+    Returns:
+        str: ip 
+    """
+    result = await session.scalars(select(func.max(User.ip)))
+    ip = result.first()
+    return str(IPv4Address(ip) + 1)
