@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from modules.user_callback import UserCallbackData
 from modules.wg_services import WgServices
 from commands.keyboards import back_button
-from db.requests import delete_user_by_id, get_real_users, get_pay_users
+from db.models import User
+from db.requests import get_real_users, get_pay_users, delete_user_in_db
 from commands.returned_messages import messages_for_real_user_menu, messages_for_blocked_user_menu
 
 router = Router()
@@ -34,7 +35,8 @@ async def admin_blocked_users(call: types.CallbackQuery, session: AsyncSession) 
 
 @router.callback_query(UserCallbackData.filter(F.action =='delete_blocked_user'))
 async def admin_delete_blocked_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData) -> None:
-    await delete_user_by_id(callback_data.id, session)
+    user = await session.get(User, callback_data.id)
+    await delete_user_in_db(user, session)
     await messages_for_blocked_user_menu(call, session)
 
 @router.callback_query(text='restart_wg')

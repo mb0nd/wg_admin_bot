@@ -8,8 +8,7 @@ from modules.wg_user import WgUser
 from db.models import User
 
 
-async def write_new_user(user: User, session: AsyncSession) -> None:
-    """Создание записи о новом пользователе в БД"""
+async def write_user_to_db(user: User, session: AsyncSession) -> None:
     session.add(user)
     await session.commit()
 
@@ -29,48 +28,29 @@ async def decline_access_user(callback_data: UserCallbackData, session: AsyncSes
     session.add(user)
     await session.commit()
 
-async def delete_user_by_id(id: int, session: AsyncSession) -> None:
+async def delete_user_in_db(user: User, session: AsyncSession) -> None:
     """Удаление пользователя из БД
 
     Args:
         id (int): id пользователя
         session (AsyncSession): сессия с БД
     """
-    stmt = delete(User).where(User.user_id == id)
-    await session.execute(stmt)
+    #stmt = delete(User).where(User.user_id == id)
+    await session.delete(user)
     await session.commit()
         
-async def switch_user_ban_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
-    """Изменить статус пользователя в БД (забанен / разбанен) 
-       в зависимости от текущего состояние меняется на противоположное
-
-    Args:
-        callback_data (UserCallbackData): данные о пользователе
-        session (AsyncSession): сессия с БД
-        path_to_wg (str): путь к папке с wireguard
-    """
-    stmt = select(User.pub_key, User.ip, User.is_baned).where(User.user_id==callback_data.id)
-    result = await session.execute(stmt)
-    pub_key, ip, ban_status = result.first()
-    await WgUser.switch_user_blocked_status(ip, pub_key, ban_status)
-    stmt = update(User).where(User.user_id==callback_data.id).values(is_baned=not ban_status, updated_at=datetime.now())
+async def switch_user_ban_status(user: User, session: AsyncSession) -> None:
+    stmt = update(User).where(User.user_id==user.user_id).values(is_baned = not user.is_baned, updated_at = datetime.now())
     await session.execute(stmt)
     await session.commit()
 
-async def switch_user_pay_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
-    """Изменить статус пользователя в БД (платный / бесплатный) 
-       в зависимости от текущего состояние меняется на противоположное
-
-    Args:
-        callback_data (UserCallbackData): данные о пользователе
-        session (AsyncSession): сессия с БД
-    """
+"""async def switch_user_pay_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
     stmt = select(User.is_pay).where(User.user_id==callback_data.id)
     result = await session.execute(stmt)
     pay_status = result.scalar()
     stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=not pay_status, updated_at=datetime.now())
     await session.execute(stmt)
-    await session.commit()
+    await session.commit()"""
 
 async def check_user_by_id(id: int, session: AsyncSession) -> int:
     """Проверка на существование пользователя в БД по id

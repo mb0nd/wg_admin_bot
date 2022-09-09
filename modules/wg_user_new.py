@@ -1,8 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import FSInputFile
+from datetime import datetime
 from db.models import User
 from modules.env_reader import env
-from db.requests import get_next_ip, write_new_user
+from db.requests import get_next_ip, write_user_to_db, delete_user_in_db, switch_user_ban_status
 import subprocess
 import os
 
@@ -36,13 +37,12 @@ class WgUser:
         with open(f'{path_to_file}', 'w', encoding='utf-8') as file:
             file.write(content)
     
-
     def __init__(self, user: User) -> None:
         self.path_to_user = WgUser.path_to_wg + user.user_name
-        self.name = user.user_name
-        self.publickey = user.pub_key
-        self.ip = user.ip
-        self.privatekey = user.privatekey if 'privatekey' in user.__dict__ else None
+        #self.name = user.user_name
+        #self.publickey = user.pub_key
+        #self.ip = user.ip
+        #self.privatekey = user.privatekey if 'privatekey' in user.__dict__ else None
         self.user_object = user
 
     async def set_new_peer(self) -> None:
@@ -51,23 +51,23 @@ class WgUser:
         и дописывает новый peer в wg0.conf
         """
         with open(f'{WgUser.path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
-            file.write(f"\n[Peer]\nPublicKey = {self.publickey}\nAllowedIPs = {self.ip}/32")
-        os.system( f"wg set wg0 peer {self.publickey} allowed-ips {self.ip}/32")
+            file.write(f"\n[Peer]\nPublicKey = {self.user_object.pub_key}\nAllowedIPs = {self.user_object.ip}/32")
+        os.system( f"wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32")
         
     async def generate_peer_config(self) -> None:
         """
         Создает конфигурационный файл пользователя,
         при отсутствии создает папку пользователя
         """
-        content = f"[Interface]\nPrivateKey = {self.privatekey}\nAddress = {self.ip}/32\n"\
+        content = f"[Interface]\nPrivateKey = {self.user_object.privatekey}\nAddress = {self.user_object.ip}/32\n"\
             f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {self.serverPublickey}\n"\
             f"Endpoint = {self.hostname}:{env.listen_port}\n"\
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
         if not os.path.exists(self.path_to_user):
             os.mkdir(f"{self.path_to_user}")
-        await WgUser.file_writer(f'{self.path_to_user}/{self.name}.conf', content)
+        await WgUser.file_writer(f'{self.path_to_user}/{self.user_object.user_name}.conf', content)
 
-    async def create_user(self, session: AsyncSession) -> FSInputFile:
+    async def create_user(self) -> FSInputFile:
         """Метод создает пользователя
 
         Args:
@@ -78,13 +78,49 @@ class WgUser:
         """
         await self.set_new_peer()
         await self.generate_peer_config()
-        del self.user_object.privatekey
-        await write_new_user(self.user_object, session) # Пока так... надо подумать
-        config = FSInputFile(f'{self.path_to_user}/{self.name}.conf', filename=f'{self.name}.conf')
+        config = FSInputFile(f'{self.path_to_user}/{self.user_object.user_name}.conf', filename=f'{self.user_object.user_name}.conf')
         return config
 
+    async def switch_ban_status(self, session: AsyncSession) -> None:
+        input_text = await self.file_reader(f"{self.path_to_wg}wg0.conf")
+        if not self.user_object.is_baned:
+            os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
+            output_text = input_text.replace(self.user_object.pub_key, f"%BANNED%{self.user_object.pub_key}")
+        else:
+            os.system(f'wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32')
+            output_text = input_text.replace(f"%BANNED%{self.user_object.pub_key}", self.user_object.pub_key)
+        await self.file_writer(f"{self.path_to_wg}wg0.conf", output_text)
+        self.user_object.is_baned = not self.user_object.is_baned
+        self.user_object.updated_at = datetime.now()
+        await write_user_to_db(self.user_object, session)
 
-async def get_user(id: int, name: str, session: AsyncSession) -> WgUser:
+    async def switch_pay_status(self, session: AsyncSession) -> None:
+        self.user_object.is_pay = not self.user_object.is_pay
+        self.user_object.updated_at = datetime.now()
+        await write_user_to_db(self.user_object, session)
+
+    async def delete_user(self, session: AsyncSession) -> None:
+        """Удаляет данные о пользователе из wireguard, включая файлы и папки
+
+        Args:
+            user (User): объект класса модели пользователя
+        """
+        os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
+        with open(f'{self.path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
+            input_text = f.readlines()
+        for i in range(len(input_text)):
+            if self.user_object.pub_key in input_text[i]:
+                for _ in range(3):
+                    input_text.pop(i-1)
+                break
+        input_text[-1] = input_text[-1].rstrip()
+        with open(f'{self.path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
+            f.writelines(input_text)
+        os.system(f'rm -rf {self.path_to_wg}{self.user_object.user_name}')
+        await delete_user_in_db(self.user_object, session)
+
+
+async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
         """Метод получает пользователя из БД, 
         - если находит то отдает полученые данные в конструктор класса и возвращает экземпляр
         - если нет то собирает данные из файлов и вывода и передает в конструктор,
@@ -99,15 +135,14 @@ async def get_user(id: int, name: str, session: AsyncSession) -> WgUser:
         user = await session.get(User, id)
         if user is None:
             privatekey = subprocess.getoutput('wg genkey')
-            user = User()
-            user.user_id = id
-            user.user_name = name
-            user.pub_key = subprocess.getoutput(f'echo {privatekey} | wg pubkey')
-            user.ip = await get_next_ip(session)
-            #session.add(user)
-            #await session.commit()     Можно писать пользователя в базу прямо тут, но х3 как обернется дальше
+            user = User(
+                user_id = id,
+                user_name = name,
+                pub_key = subprocess.getoutput(f'echo {privatekey} | wg pubkey'),
+                ip = await get_next_ip(session)
+            )
+            await write_user_to_db(user, session)
             user.privatekey = privatekey
         return WgUser(user)
-
 
         ##subprocess.run(['wg', 'set', 'wg0', 'peer', self.publickey, 'allowed-ips', f'{self.ip}/32'])
