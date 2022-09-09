@@ -1,10 +1,8 @@
-from typing import  Dict, List
-from datetime import datetime
+from typing import List
 from ipaddress import IPv4Address
-from sqlalchemy import select, update, delete, func
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from modules.user_callback import UserCallbackData
-from modules.wg_user import WgUser
 from db.models import User
 
 
@@ -35,54 +33,8 @@ async def delete_user_in_db(user: User, session: AsyncSession) -> None:
         id (int): id пользователя
         session (AsyncSession): сессия с БД
     """
-    #stmt = delete(User).where(User.user_id == id)
     await session.delete(user)
     await session.commit()
-        
-async def switch_user_ban_status(user: User, session: AsyncSession) -> None:
-    stmt = update(User).where(User.user_id==user.user_id).values(is_baned = not user.is_baned, updated_at = datetime.now())
-    await session.execute(stmt)
-    await session.commit()
-
-"""async def switch_user_pay_status(callback_data: UserCallbackData, session: AsyncSession) -> None:
-    stmt = select(User.is_pay).where(User.user_id==callback_data.id)
-    result = await session.execute(stmt)
-    pay_status = result.scalar()
-    stmt = update(User).where(User.user_id==callback_data.id).values(is_pay=not pay_status, updated_at=datetime.now())
-    await session.execute(stmt)
-    await session.commit()"""
-
-async def check_user_by_id(id: int, session: AsyncSession) -> int:
-    """Проверка на существование пользователя в БД по id
-
-    Args:
-        id (int): id пользователя
-        session (AsyncSession): сессия с БД
-
-    Returns:
-        User: объект пользователя
-    """
-    stmt = select(User.user_id).where(User.user_id == id)
-    result = await session.execute(stmt)
-    user = result.scalars().first()
-    return user
-
-async def get_user_by_id(id: int, session: AsyncSession) -> User:
-    """Получение объекта пользователя из БД по id
-
-    Args:
-        id (int): id пользователя
-        session (AsyncSession): сессия с БД
-
-    Returns:
-        User: объект пользователя
-     """
-    #вариант заменить на user = await session.get(User, id)
-   
-    stmt = select(User).where(User.user_id == id)
-    result = await session.execute(stmt)
-    user = result.first()
-    return user
 
 async def get_blocked_users(session: AsyncSession) -> List[User]:
     """Поллучить из БД всех пользователей которым доступ был отклонен и

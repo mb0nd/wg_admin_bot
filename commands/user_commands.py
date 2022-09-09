@@ -2,7 +2,7 @@ from aiogram import Bot, Router, types
 from sqlalchemy.ext.asyncio import AsyncSession
 from commands.keyboards import getvpn, get_accept_buttons
 from modules.env_reader import Settings
-from db.requests import check_user_by_id
+from db.models import User
 
 
 router = Router()
@@ -22,7 +22,7 @@ async def get_vpn(
     session: AsyncSession, 
     in_verification: set
 ):
-    user = await check_user_by_id(call.from_user.id, session)
+    user = await session.get(User, call.from_user.id)
     if user:
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return
