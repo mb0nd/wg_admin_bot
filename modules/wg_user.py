@@ -15,7 +15,7 @@ class WgUser:
     serverPublickey = subprocess.getoutput(f'cat {path_to_wg}publickey')
 
     @staticmethod
-    async def file_reader(path_to_file: str) -> str:
+    async def __file_reader(path_to_file: str) -> str:
         """Интерфейс для чтения файлов
 
         Args:
@@ -28,7 +28,7 @@ class WgUser:
             return file.read()
 
     @staticmethod
-    async def file_writer(path_to_file: str, content: str) -> None:
+    async def __file_writer(path_to_file: str, content: str) -> None:
         """Интерфейс для записи файлов
 
         Args:
@@ -41,7 +41,7 @@ class WgUser:
     def __init__(self, user: User) -> None:
         self.user_object = user
 
-    async def set_new_peer(self) -> None:
+    async def __set_new_peer(self) -> None:
         """
         Добавляет нового пользователя в текущий инстанс wireguard,
         и дописывает новый peer в wg0.conf
@@ -50,7 +50,7 @@ class WgUser:
             file.write(f"\n[Peer]\nPublicKey = {self.user_object.pub_key}\nAllowedIPs = {self.user_object.ip}/32")
         os.system( f"wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32")
         
-    async def generate_peer_config(self) -> None:
+    async def __generate_peer_config(self) -> None:
         """
         Создает конфигурационный файл пользователя,
         при отсутствии создает папку пользователя
@@ -61,7 +61,7 @@ class WgUser:
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
         if not os.path.exists(self.path_to_user_configs):
             os.mkdir(self.path_to_user_configs)
-        await self.file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
+        await self.__file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
 
     async def create_user(self) -> FSInputFile:
         """Метод создает пользователя
@@ -72,20 +72,20 @@ class WgUser:
         Returns:
             FSInputFile: конфигурационный файл
         """
-        await self.set_new_peer()
-        await self.generate_peer_config()
+        await self.__set_new_peer()
+        await self.__generate_peer_config()
         config = FSInputFile(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', filename=f'{self.user_object.user_name}.conf')
         return config
 
     async def switch_ban_status(self, session: AsyncSession) -> None:
-        input_text = await self.file_reader(f"{self.path_to_wg}wg0.conf")
+        input_text = await self.__file_reader(f"{self.path_to_wg}wg0.conf")
         if not self.user_object.is_baned:
             os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
             output_text = input_text.replace(self.user_object.pub_key, f"%BANNED%{self.user_object.pub_key}")
         else:
             os.system(f'wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32')
             output_text = input_text.replace(f"%BANNED%{self.user_object.pub_key}", self.user_object.pub_key)
-        await self.file_writer(f"{self.path_to_wg}wg0.conf", output_text)
+        await self.__file_writer(f"{self.path_to_wg}wg0.conf", output_text)
         self.user_object.is_baned = not self.user_object.is_baned
         self.user_object.updated_at = datetime.now()
         await write_user_to_db(self.user_object, session)
