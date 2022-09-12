@@ -92,4 +92,6 @@ async def get_next_ip(session: AsyncSession) -> str:
     """
     result = await session.scalars(select(func.max(User.ip)))
     ip = result.first()
+    if ip is None:
+        return '10.0.0.10'
     return str(IPv4Address(ip) + 1)

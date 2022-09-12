@@ -10,6 +10,7 @@ import os
 class WgUser:
 
     path_to_wg = env.path_to_wg
+    path_to_user_configs = path_to_wg + 'user_configs'
     hostname = os.uname().nodename
     serverPublickey = subprocess.getoutput(f'cat {path_to_wg}publickey')
 
@@ -38,7 +39,6 @@ class WgUser:
             file.write(content)
     
     def __init__(self, user: User) -> None:
-        self.path_to_user = WgUser.path_to_wg + user.user_name
         self.user_object = user
 
     async def set_new_peer(self) -> None:
@@ -59,9 +59,9 @@ class WgUser:
             f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {self.serverPublickey}\n"\
             f"Endpoint = {self.hostname}:{env.listen_port}\n"\
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
-        if not os.path.exists(self.path_to_user):
-            os.mkdir(f"{self.path_to_user}")
-        await WgUser.file_writer(f'{self.path_to_user}/{self.user_object.user_name}.conf', content)
+        if not os.path.exists(self.path_to_user_configs):
+            os.mkdir(self.path_to_user_configs)
+        await self.file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
 
     async def create_user(self) -> FSInputFile:
         """Метод создает пользователя
@@ -74,7 +74,7 @@ class WgUser:
         """
         await self.set_new_peer()
         await self.generate_peer_config()
-        config = FSInputFile(f'{self.path_to_user}/{self.user_object.user_name}.conf', filename=f'{self.user_object.user_name}.conf')
+        config = FSInputFile(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', filename=f'{self.user_object.user_name}.conf')
         return config
 
     async def switch_ban_status(self, session: AsyncSession) -> None:
@@ -112,7 +112,7 @@ class WgUser:
         input_text[-1] = input_text[-1].rstrip()
         with open(f'{self.path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
             f.writelines(input_text)
-        os.system(f'rm -rf {self.path_to_wg}{self.user_object.user_name}')
+        os.remove(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf')
         await delete_user_in_db(self.user_object, session)
 
 async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
@@ -139,5 +139,3 @@ async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
             await write_user_to_db(user, session)
             user.privatekey = privatekey
         return WgUser(user)
-
-        ##subprocess.run(['wg', 'set', 'wg0', 'peer', self.publickey, 'allowed-ips', f'{self.ip}/32'])
