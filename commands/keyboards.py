@@ -38,6 +38,7 @@ def real_users_menu(user_list: list) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for user in user_list:
         builder.row(InlineKeyboardButton(text=f"{user.user_name}", callback_data=UserCallbackData(action='user_manage', id=user.user_id).pack()))
+    builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder.as_markup(resize_keyboard=True)
 
 def one_user_menu(user: User) -> InlineKeyboardMarkup:

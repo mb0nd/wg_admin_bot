@@ -21,4 +21,4 @@ async def messages_for_blocked_user_menu(call: types.CallbackQuery, session: Asy
     if blocked_users:
         await call.message.edit_text('Заблокированные пользователи:', reply_markup=block_users_menu(blocked_users))
     else:
-        await call.message.edit_text('Список заблокированных пользователей пуст.', reply_markup=block_users_menu(blocked_users))
+        await call.message.edit_text('Список заблокированных пользователей пуст.', reply_markup=back_button())
