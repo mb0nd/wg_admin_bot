@@ -139,6 +139,3 @@ async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
             await write_user_to_db(user, session)
             user.privatekey = privatekey
         return WgUser(user)
-
-"""попробуем сделать класс предком для User 
-и работать напрямую с ним"""

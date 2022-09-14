@@ -10,7 +10,7 @@ from db import Base, create_async_engine, get_session_maker, proceed_schemas
 
 
 async def main() -> None:
-    logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',level=logging.INFO)
+    logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',level=logging.WARNING)
     dp = Dispatcher()
     bot = Bot(token=env.api_token.get_secret_value())
     # регистрируем доступные команды в боте в выпадающую менюху
