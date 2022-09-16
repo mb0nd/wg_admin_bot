@@ -1,5 +1,5 @@
-from .base import Base
-from .engine import create_async_engine, get_session_maker, proceed_schemas
-from .models import User
+from db.engine import create_async_engine, get_session_maker, proceed_schemas
+from db.models import User
+from db.base import Base
 
-__all__ = ['Base', 'create_async_engine', 'get_session_maker', 'proceed_schemas', 'User']
+__all__ = ['create_async_engine', 'get_session_maker', 'proceed_schemas', 'User', 'Base']

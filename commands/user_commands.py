@@ -1,8 +1,8 @@
 from aiogram import Bot, Router, types
 from sqlalchemy.ext.asyncio import AsyncSession
 from commands.keyboards import getvpn, get_accept_buttons
-from env_reader import Settings
-from db.requests import check_user_by_id
+from modules.env_reader import Settings
+from db.models import User
 
 
 router = Router()
@@ -22,11 +22,14 @@ async def get_vpn(
     session: AsyncSession, 
     in_verification: set
 ):
-    user = await check_user_by_id(call.from_user.id, session)
+    user = await session.get(User, call.from_user.id)
     if user:
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return
     in_verification.add(call.from_user.id)
+    if call.from_user.username is None:
+        call.from_user.username = call.from_user.id
+
     await bot.send_message(
         chat_id=env.admin_id,
         text= f"@{call.from_user.username} ({call.from_user.full_name}) отправил запрос на доступ.",

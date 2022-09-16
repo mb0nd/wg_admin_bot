@@ -3,14 +3,14 @@ import logging
 from aiogram import Dispatcher, Bot, F
 from commands.admin_commands.main import router as admin_router
 from commands.user_commands import router as user_router
-from env_reader import env
+from modules.env_reader import env
 from middlewares.is_baned_middleware import IsBanedMiddleware
 from middlewares.db_session_middleware import DbSessionMiddleware
 from db import Base, create_async_engine, get_session_maker, proceed_schemas
 
 
 async def main() -> None:
-    logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',level=logging.INFO)
+    logging.basicConfig(format=u'%(filename)s [LINE:%(lineno)d] #%(levelname)-8s [%(asctime)s]  %(message)s',level=logging.WARNING)
     dp = Dispatcher()
     bot = Bot(token=env.api_token.get_secret_value())
     # регистрируем доступные команды в боте в выпадающую менюху
