@@ -1,4 +1,3 @@
-from curses.ascii import isdigit
 from typing import Dict, Union
 from db.models import User
 import subprocess
