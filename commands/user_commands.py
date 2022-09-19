@@ -17,8 +17,7 @@ class GetUsername(StatesGroup):
 @router.message(commands=["start"])
 async def start(message: types.Message, in_verification: set, state: FSMContext) -> types.Message:
     if not message.from_user.id in in_verification:
-        #if message.from_user.username is None:
-        if message.from_user.username == 'bondarenko_m_s':
+        if message.from_user.username is None:
             await message.answer('Как к вам обращаться?')
             await state.set_state(GetUsername.get_username)
         else:
