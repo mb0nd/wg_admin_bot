@@ -7,7 +7,7 @@ import os
 class WgServices:
     @staticmethod
     def check_username(name: str) -> bool:
-        if isinstance(name, str) and len(name) > 3 and name[0].isalpha():
+        if isinstance(name, str) and 3 < len(name) < 12 and name[0].isalpha():
             return True
         return False
 
