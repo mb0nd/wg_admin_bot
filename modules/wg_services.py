@@ -1,3 +1,4 @@
+from curses.ascii import isdigit
 from typing import Dict, Union
 from db.models import User
 import subprocess
@@ -5,6 +6,11 @@ import os
 
 
 class WgServices:
+    @staticmethod
+    def check_username(name: str) -> bool:
+        if isinstance(name, str) and len(name) > 3 and name[0].isalpha():
+            return True
+        return False
 
     @staticmethod
     async def check_statistics() -> Dict:

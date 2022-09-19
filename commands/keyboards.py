@@ -4,10 +4,10 @@ from aiogram.types.inline_keyboard_button import InlineKeyboardButton
 from db.models import User
 from modules.user_callback import UserCallbackData
 
-def getvpn() -> InlineKeyboardMarkup:
+def getvpn(user_id, user_name) -> InlineKeyboardMarkup:
     return InlineKeyboardBuilder().button(
         text='getvpn', 
-        callback_data='getvpn'
+        callback_data=UserCallbackData(action='get_vpn', id=user_id, name=user_name).pack()
     ).as_markup(resize_keyboard=True)
 
 def get_accept_buttons(user_id, user_name) -> InlineKeyboardMarkup:
