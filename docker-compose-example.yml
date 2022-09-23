@@ -1,0 +1,31 @@
+version: '3.3'
+volumes:
+    pgdata:
+    wgdata:
+services:
+    db:
+        image: postgres:13-alpine
+        restart: "unless-stopped"
+        environment:
+            POSTGRES_PASSWORD: #your db_password
+            POSTGRES_USER: #your db_user
+        ports:
+          - 5432:5432
+        volumes:
+            - "pgdata:/var/lib/postgresql/data"
+    bot:
+        build: .
+        stop_signal: SIGINT
+        restart: "unless-stopped"
+        environment:
+            - API_TOKEN= #your api_tocken
+            - ADMIN_ID= #your admin_id
+            - PG_URL=postgresql+asyncpg://{your db_user}:{your db_password}@db/{your db_user} #без скобок {}
+            - LISTEN_PORT= #your wg_port
+            - PATH_TO_WG=/etc/wireguard/
+        cap_add:
+          - "NET_ADMIN"
+        volumes:
+            - "wgdata:/etc/wireguard/"
+        depends_on:
+            - db

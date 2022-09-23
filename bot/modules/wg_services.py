@@ -58,12 +58,11 @@ class WgServices:
         Returns:
             tuple: строка ответа админу и статус выполненеия
         """
-        os.system('systemctl restart wg-quick@wg0')
         try:
-            output = subprocess.getoutput('systemctl status wg-quick@wg0').splitlines()[2]
-            if 'Active: active' in output:
-                return ("Сервер перезапущен", True)
+            output = subprocess.getstatusoutput('wg-quick down wg0 && wg-quick up wg0')
+            if output[0] == 0:
+                return (f'Сервер перезапущен', True)
             else:
-                return (f"Что то пошло не так <code>{output}</code>", False)
+                return (f'<code>{output[1]}</code>', False)
         except subprocess.CalledProcessError:
             return (f"Что то пошло не так", False)
