@@ -11,7 +11,6 @@ class WgUser:
 
     path_to_wg = env.path_to_wg
     path_to_user_configs = path_to_wg + 'user_configs'
-    hostname = os.uname().nodename
     serverPublickey = subprocess.getoutput(f'cat {path_to_wg}publickey')
 
     @staticmethod
@@ -57,7 +56,7 @@ class WgUser:
         """
         content = f"[Interface]\nPrivateKey = {self.user_object.privatekey}\nAddress = {self.user_object.ip}/32\n"\
             f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {self.serverPublickey}\n"\
-            f"Endpoint = {self.hostname}:{env.listen_port}\n"\
+            f"Endpoint = {env.host}:{env.listen_port}\n"\
             "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
         if not os.path.exists(self.path_to_user_configs):
             os.mkdir(self.path_to_user_configs)
