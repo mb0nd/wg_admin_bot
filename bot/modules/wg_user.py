@@ -1,3 +1,4 @@
+from asyncio.log import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import FSInputFile
 from datetime import datetime
@@ -101,17 +102,20 @@ class WgUser:
             user (User): объект класса модели пользователя
         """
         os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
-        with open(f'{self.path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
-            input_text = f.readlines()
-        for i in range(len(input_text)):
-            if self.user_object.pub_key in input_text[i]:
-                for _ in range(3):
-                    input_text.pop(i-1)
-                break
-        input_text[-1] = input_text[-1].rstrip()
-        with open(f'{self.path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
-            f.writelines(input_text)
-        os.remove(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf')
+        try:
+            with open(f'{self.path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
+                input_text = f.readlines()
+            for i in range(len(input_text)):
+                if self.user_object.pub_key in input_text[i]:
+                    for _ in range(3):
+                        input_text.pop(i-1)
+                    break
+            input_text[-1] = input_text[-1].rstrip()
+            with open(f'{self.path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
+                f.writelines(input_text)
+            os.remove(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf')
+        except (FileNotFoundError, IndexError):
+            logger.error("Файл /etc/wireguard/wg0.conf отсутстует или поврежден.")
         await delete_user_in_db(self.user_object, session)
 
 async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
