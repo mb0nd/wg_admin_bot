@@ -19,5 +19,4 @@ COPY alembic /app/alembic
 COPY bot /app/bot
 COPY initwg.sh /app/initwg.sh
 RUN chmod +x /app/initwg.sh
-EXPOSE 5533/udp
 ENTRYPOINT [ "/app/initwg.sh" ]

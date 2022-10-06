@@ -23,7 +23,7 @@ services:
             - HOST= #your host_ip
             - PATH_TO_WG=/etc/wireguard/
         ports:
-          - 5533:5533
+          - #wg_port:wg_port/udp
         cap_add:
           - "NET_ADMIN"
         volumes:
