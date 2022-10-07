@@ -1,70 +1,100 @@
-Этот телеграм бот написан с использованием aiogram3.x.
-Бот предназначен для управления вашим wireguard сервером.
-Сценарий:
- - Пользователь отправляет команду /start боту.
+# Wireguard_admin_bot
+> Используется aiogram 3.0.0b
+### Бот предназначен для управления вашим wireguard сервером.
+#####Сценарий работы с ботом:
+ - Пользователь отправляет команду ___/start___ боту.
+ ![](images/start_command.PNG)
+
  - Администратору приходит сообщение в телеграм с кномками "разрешить" и "запретить".
+ ![](/images/access_request.PNG)
  - После запрета запись о пользователе добавится в БД с пометкой "baned", после этого бот перестанет обрабатывать сообщения этого пользователя.
 (файлы конфигурации при это не генерируются)
  - После разрешения доступа для пользователя создается файл конфигурации wireguard и отправляется ботом в личные сообщения телеграм.
+ ![](/images/send_file.PNG)
 
 Режим администратора:
- - Для входа в режим администратора отправьте комманду /admin (она будет обработана только от пользователя с id указанным в качестве 
-администратора при запуске бота)
+ - Для входа в режим администратора отправьте комманду ___/admin___ (она будет обработана только от пользователя с id указанным в качестве администратора при запуске бота)
+ ![](/images/admin_menu.PNG)
  Меню администратора содержит:
   - Отправка оповещения об оплате.
 	Пользователи которым доступ предоставляется платно помечаются соответсвующим флагом в БД, при нажатии на эту кнопку всем платным пользователям придет
 	уведомление о том что подошел срок оплаты. 
   - Потребление трафика.
 	Отображает статистику об использовании трафика пользователями сервера.
+	![](/images/stat.PNG)
   - Список реальных пользователей.
 	Отображает список пользователей, которым был предоставлен доступ. Каждый элемент списка является кнопкой, которая переводит в режим работы с отдельным пользователем.
-	  - Меню управления отдельным пользователем.
+- Меню управления отдельным пользователем.
 		Отображает статистику потребления трафика данным пользователем и содержит список функций.
 		  - Забанить / разбанить пользователя
 		  - Добавить / убрать флаг оплаты
 		  - Удалить пользователя
 		  - Кнопка "назад" возврат к приведущему меню
-  - Список заблокированных пользователей.
+![](/images/user.PNG)
+- Список заблокированных пользователей.
 	Отображает аналогичный список пользователей, которым был отклонен доступ. 
 	Из внутреннего функционала только удаление такого пользователя для возможности запросить доступ повторно.
-  - Перезапустить WG.
+- Перезапустить WG.
 	Перезапускает сервис wireguard прямо по команде из телеграм.
-  - Закрыть.
+- Закрыть.
 	Закрывает меню администратора.
 
-Installation:
-    Docker:
-- Install docker and docker-compose
-- Clone the repository to your server
-- Copy next to docker-compose-example named docker-compose
-- Fill in impossible variables in it:
-- POSTGRES_PASSWORD (Password from the database)
-- POSTGRES_USER (Database username)
-- API_TOKEN (Telegram token received from BotFather)
-- ADMIN_ID (Administrator's Telegram id)
-- PG_URL=postgresql+asyncpg://{your db_user}:{your db_password}@db/{your db_user}
-- LISTEN_PORT (Port to be used by wireguard)
-- HOST (ip address of your server, by access it is available on the Internet)
-- PATH_TO_WG=/etc/wireguard/ (wireguard installation path, change if not default installation)
-- Run docker-compose up --build
+##Развертывание на сервере:
+##### - Развертывание в контейнере Docker:
+- Установить docker и docker-compose
+- Клонируем данный репозиторий к себе на сервер
+	```
+	git clone https://github.com/mb0nd/wg_admin_bot.git
+	```
+- Копируем docker-compose-example.yml и переименовываем в docker-compose.yml
+- Заполняем переменные окружения:
+	- __POSTGRES_PASSWORD__ _(пароль для доступа к БД)_
+	- __POSTGRES_USER__ _(имя пользователя БД)_
+	- __API_TOKEN__ _(токен полученный от BotFather)_
+	- __ADMIN_ID__ _(телеграм id администратора)_
+	- __PG_URL__=postgresql+asyncpg://___POSTGRES_USER___:___POSTGRES_PASSWORD___@db/___POSTGRES_USER___
+	- __LISTEN_PORT__ _(порт используемый wireguard)_
+	- __HOST__ _(ip адрес сервера, по которому он доступен в интернете)_
+	- __PATH_TO_WG__=/etc/wireguard/ _(путь установки wireguard при установке по умолчанию)_
+- Выполнить команду
+	```
+	run docker-compose up --build
+	```
 
-Server:
-- install wireguard
-- install postgresql
-- clone this repository
-- make venv
-- install requirements
-- create shell script (example "run.sh")
-- chmod +x run.sh
-		#!/usr/bin/env bash
+##### - Развертывание непосредственно на сервере:
+- Установить wireguard [см. для своей ОС](https://www.wireguard.com/install/)
+- Установить postgresql _(создать БД и учетные данные)_ [см. для своей ОС](https://www.postgresql.org/download/)
+- Клонируем репозиторий к себе на сервер и переходим в каталог проекта 
+	```
+	git clone https://github.com/mb0nd/wg_admin_bot.git && cd wg_admin_bot
+	```
+- Создаем виртуальное окружение 
+	```
+	python -m venv venv
+	```
+- Устанавливаем зависимости
+	```
+	pip install --upgrade pip && pip install -r requirements.txt
+	```
+- Создаем bash скрипт для запуска бота _(прим. "run.sh")_ следующего содержания и заполняем переменные окружения аналогично для варианта с докером.
+	```
+	#!/usr/bin/env bash
 
-		source YOUR_PATH/venv/bin/activate
-		export API_TOKEN=''
-		export ADMIN_ID=''
-		export PG_URL='postgresql+asyncpg://PG_USER:PG_PASSWORD@localhost/DB_NAME'
-		export LISTEN_PORT=''
-		export HOST=''
-		export PATH_TO_WG='/etc/wireguard/'
+	source путь_к_папке_с_проектом/venv/bin/activate
+	export API_TOKEN=''
+	export ADMIN_ID=''
+	export PG_URL='postgresql+asyncpg://PG_USER:PG_PASSWORD@localhost/DB_NAME'
+	export LISTEN_PORT=''
+	export HOST=''
+	export PATH_TO_WG='/etc/wireguard/'
 
-		python3 YOUR_PATH/bot/__main__.py
-- ./run.sh
+	python3 путь_к_папке_с_проектом/bot/__main__.py
+	```
+- Не забываем сделать скрипт исполняемым
+	```
+	chmod +x run.sh
+	```
+- Зыпускаем бота
+	```
+	./run.sh
+	```
