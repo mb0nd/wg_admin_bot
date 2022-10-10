@@ -1,6 +1,6 @@
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
-from user_callback import UserCallbackData
+from bot.cb_data import UserCallbackData
 from modules.wg_services import WgServices
 from commands.keyboards import back_button
 from db.models import User
