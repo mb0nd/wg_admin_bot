@@ -2,10 +2,10 @@ from aiogram import Bot, Router, types, F
 from aiogram.dispatcher.fsm.state import StatesGroup, State
 from aiogram.dispatcher.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
-from modules.user_callback import UserCallbackData
+from user_callback import UserCallbackData
 from modules.wg_services import WgServices
 from commands.keyboards import getvpn, get_accept_buttons
-from modules.env_reader import Settings
+from env_reader import Settings
 from db.models import User
 
 

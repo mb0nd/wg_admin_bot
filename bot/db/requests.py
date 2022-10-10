@@ -2,7 +2,7 @@ from typing import List
 from ipaddress import IPv4Address
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from modules.user_callback import UserCallbackData
+from user_callback import UserCallbackData
 from db.models import User
 
 

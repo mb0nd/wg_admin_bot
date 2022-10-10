@@ -1,6 +1,6 @@
 from aiogram import Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
-from modules.user_callback import UserCallbackData
+from user_callback import UserCallbackData
 from modules.wg_user import get_user
 from commands.returned_messages import messages_for_real_user_menu, return_user_menu
 

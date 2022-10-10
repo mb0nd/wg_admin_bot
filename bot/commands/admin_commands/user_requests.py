@@ -1,6 +1,6 @@
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
-from modules.user_callback import UserCallbackData
+from user_callback import UserCallbackData
 from sqlalchemy.exc import IntegrityError
 from db.requests import decline_access_user
 from modules.wg_user import get_user

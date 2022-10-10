@@ -3,7 +3,7 @@ import logging
 from aiogram import Dispatcher, Bot, F
 from commands.admin_commands.main import router as admin_router
 from commands.user_commands import router as user_router
-from modules.env_reader import env
+from env_reader import env
 from middlewares.is_baned_middleware import IsBanedMiddleware
 from middlewares.db_session_middleware import DbSessionMiddleware
 from db import Base, create_async_engine, get_session_maker, proceed_schemas

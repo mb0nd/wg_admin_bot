@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import FSInputFile
 from datetime import datetime
 from db.models import User
-from modules.env_reader import env
+from env_reader import env
 from db.requests import get_next_ip, write_user_to_db, delete_user_in_db
 import subprocess
 import os
