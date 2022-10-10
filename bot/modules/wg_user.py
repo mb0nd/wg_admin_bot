@@ -89,11 +89,13 @@ class WgUser:
         self.user_object.is_baned = not self.user_object.is_baned
         self.user_object.updated_at = datetime.now()
         await write_user_to_db(self.user_object, session)
+        await session.commit()
 
     async def switch_pay_status(self, session: AsyncSession) -> None:
         self.user_object.is_pay = not self.user_object.is_pay
         self.user_object.updated_at = datetime.now()
         await write_user_to_db(self.user_object, session)
+        await session.commit()
 
     async def delete_user(self, session: AsyncSession) -> None:
         """Удаляет данные о пользователе из wireguard, включая файлы и папки
@@ -117,6 +119,7 @@ class WgUser:
         except (FileNotFoundError, IndexError):
             logger.error("Файл /etc/wireguard/wg0.conf отсутстует или поврежден.")
         await delete_user_in_db(self.user_object, session)
+        await session.commit()
 
 async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
         """Метод получает пользователя из БД, 
@@ -140,5 +143,6 @@ async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
                 ip = await get_next_ip(session)
             )
             await write_user_to_db(user, session)
+            await session.commit()
             user.privatekey = privatekey
         return WgUser(user)

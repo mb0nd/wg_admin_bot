@@ -37,6 +37,7 @@ async def admin_blocked_users(call: types.CallbackQuery, session: AsyncSession) 
 async def admin_delete_blocked_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData) -> None:
     user = await session.get(User, callback_data.id)
     await delete_user_in_db(user, session)
+    await session.commit()
     await messages_for_blocked_user_menu(call, session)
 
 @router.callback_query(text='restart_wg')

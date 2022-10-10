@@ -19,6 +19,7 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
 async def decline_event_user(call: types.CallbackQuery, session: AsyncSession, callback_data: UserCallbackData, in_verification: set) -> None:
     try:
         await decline_access_user(callback_data, session)
+        await session.commit()
         await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ запрещен")
     except IntegrityError:
         await call.answer('Не удалось забанить, что то пошло не так ...')

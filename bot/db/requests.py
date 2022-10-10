@@ -7,8 +7,13 @@ from db.models import User
 
 
 async def write_user_to_db(user: User, session: AsyncSession) -> None:
+    """Записать данные пользователя в БД
+
+    Args:
+        user (User): объект модели данных
+        session (AsyncSession): сессия с БД
+    """
     session.add(user)
-    await session.commit()
 
 async def decline_access_user(callback_data: UserCallbackData, session: AsyncSession) -> None:
     """Записать в БД данные о пользователе, которому доступ отклонен (теневой бан)
@@ -24,17 +29,15 @@ async def decline_access_user(callback_data: UserCallbackData, session: AsyncSes
         is_pay = False
     )
     session.add(user)
-    await session.commit()
 
 async def delete_user_in_db(user: User, session: AsyncSession) -> None:
     """Удаление пользователя из БД
 
     Args:
-        id (int): id пользователя
+        user (User): объект модели данных
         session (AsyncSession): сессия с БД
     """
     await session.delete(user)
-    await session.commit()
 
 async def get_blocked_users(session: AsyncSession) -> List[User]:
     """Поллучить из БД всех пользователей которым доступ был отклонен и
