@@ -1,7 +1,7 @@
 from aiogram import Bot, Router, types, F
 from sqlalchemy.ext.asyncio import AsyncSession
 from bot.cb_data import UserCallbackData
-from modules.wg_services import WgServices
+from bot.modules.wg_services import data_preparation, restart_wg
 from commands.keyboards import back_button
 from db.models import User
 from db.requests import get_real_users, get_pay_users, delete_user_in_db
@@ -22,7 +22,7 @@ async def send_message_to_pay(call: types.CallbackQuery, session: AsyncSession, 
 @router.callback_query(text='traffic_statistics')
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
     data_db = await get_real_users(session) 
-    text = await WgServices.data_preparation(data_db)
+    text = await data_preparation(data_db)
     await call.message.edit_text(text, reply_markup=back_button(), parse_mode='HTML')
 
 @router.callback_query(text='real_users')
@@ -41,7 +41,7 @@ async def admin_delete_blocked_user(call: types.CallbackQuery, session: AsyncSes
 
 @router.callback_query(text='restart_wg')
 async def admin_restart_wg(call: types.CallbackQuery) -> None:
-    text, status = await WgServices.restart_wg()
+    text, status = await restart_wg()
     if status:
         return await call.answer(text, show_alert=True)
     else:

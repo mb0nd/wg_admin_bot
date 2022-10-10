@@ -3,7 +3,7 @@ from aiogram.dispatcher.fsm.state import StatesGroup, State
 from aiogram.dispatcher.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from bot.cb_data import UserCallbackData
-from modules.wg_services import WgServices
+from bot.modules.wg_services import check_username
 from commands.keyboards import getvpn, get_accept_buttons
 from env_reader import Settings
 from db.models import User
@@ -27,7 +27,7 @@ async def start(message: types.Message, in_verification: set, state: FSMContext)
             )
 @router.message(GetUsername.get_username)
 async def set_username(message: types.Message, state: FSMContext):
-    if WgServices.check_username(message.text):
+    if check_username(message.text):
         await message.answer(
                 f'Привет {message.text}, для продолжения нажми кнопку ниже.', 
                 reply_markup=getvpn(message.from_user.id, message.text)
