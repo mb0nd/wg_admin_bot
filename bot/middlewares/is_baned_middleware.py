@@ -1,7 +1,8 @@
 from aiogram import BaseMiddleware
 from typing import Callable, Awaitable, Dict, Any, Union
-from aiogram.types import Update
+from aiogram.types import Update, user
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.engine.result import ChunkedIteratorResult
 from sqlalchemy import select
 from db.models import User
 
@@ -16,14 +17,14 @@ class IsBanedMiddleware(BaseMiddleware):
         event: Update, 
         data: Dict[str, Any]
     ) -> Any:
-        user: Union[User, None] = data.get('event_from_user')
-        if not user:
+        telegram_user: Union[user.User, None] = data.get('event_from_user')
+        if not telegram_user:
             return await handler(event, data)
         session: AsyncSession = data['session']
-        stmt = select(User.user_id).where(User.is_baned==True, User.user_id==user.id)
-        result = await session.execute(stmt)
-        find_baned_user: int = result.first()
-        if find_baned_user is not None:
+        stmt = select(User.is_baned).filter_by(user_id = telegram_user.id)
+        result: ChunkedIteratorResult = await session.execute(stmt)
+        find_baned_user: bool = result.scalars().first()
+        if find_baned_user:
             if event.event_type == 'callback_query':
                 return await event.callback_query.answer()
             return
