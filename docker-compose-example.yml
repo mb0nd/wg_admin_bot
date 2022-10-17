@@ -1,7 +1,17 @@
 version: '3.3'
 volumes:
     pgdata:
+        driver: local
+        driver_opts:
+            o: bind
+            type: none
+            device: /opt/pg_data
     wgdata:
+        driver: local
+        driver_opts:
+            o: bind
+            type: none
+            device: /opt/wg_data
 services:
     db:
         image: postgres:13-alpine
@@ -28,5 +38,10 @@ services:
           - "NET_ADMIN"
         volumes:
             - "wgdata:/etc/wireguard/"
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U {your db_user}"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
         depends_on:
             - db
