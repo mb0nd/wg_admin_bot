@@ -26,16 +26,16 @@ services:
         stop_signal: SIGINT
         restart: "unless-stopped"
         environment:
-            - API_TOKEN= #your api_tocken
-            - ADMIN_ID= #your admin_id
-            - PG_URL=postgresql+asyncpg://{your db_user}:{your db_password}@db/{your db_user} #без скобок {}
-            - LISTEN_PORT= #your wg_port
-            - HOST= #your host_ip
-            - PATH_TO_WG=/etc/wireguard/
+            API_TOKEN: #your api_tocken
+            ADMIN_ID: #your admin_id
+            PG_URL: postgresql+asyncpg://{your db_user}:{your db_password}@db/{your db_user} #без скобок {}
+            LISTEN_PORT: #your wg_port
+            HOST: #your host_ip
+            PATH_TO_WG: /etc/wireguard/
         ports:
-          - #wg_port:wg_port/udp
+            - #wg_port:wg_port/udp
         cap_add:
-          - "NET_ADMIN"
+            - "NET_ADMIN"
         volumes:
             - "wgdata:/etc/wireguard/"
         healthcheck:
