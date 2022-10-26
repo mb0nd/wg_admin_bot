@@ -1,5 +1,5 @@
 #Separate build image
-FROM python:3.9-alpine3.16 as compile-image
+FROM python:3.11-alpine3.16 as compile-image
 RUN apk add --update --no-cache gcc musl-dev g++
 COPY requirements.txt .
 RUN python -m venv /opt/venv
@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 pip3 install --no-cache-dir -r requirements.txt
 
 # Final image
-FROM python:3.9-alpine3.16
+FROM python:3.11-alpine3.16
 RUN apk add -U --no-cache wireguard-tools iptables \
 && echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
 COPY --from=compile-image /opt/venv /opt/venv
