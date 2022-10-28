@@ -36,6 +36,6 @@ async def main() -> None:
 
 if __name__ == '__main__': 
     try:
-        asyncio.get_event_loop().run_until_complete(main()) #на замену asyncio.run() вроде как фиксит ошибку с ssl
+        asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        print('Bot stopped')
+        logging.error('Bot stopped')
