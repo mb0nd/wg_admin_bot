@@ -64,7 +64,7 @@ async def get_real_users(session: AsyncSession) -> List[User]:
     Returns:
         List[User]: список объектов класса User
     """
-    stmt = select(User).where(User.pub_key!="0", User.ip!="0")
+    stmt = select(User).where(User.pub_key!="0", User.ip!="0").order_by(User.created_at)
     result = await session.execute(stmt)
     real_users = result.scalars().all()
     return real_users
