@@ -1,6 +1,7 @@
 from typing import Dict, Union
 from db.models import User
 import subprocess
+import datetime
 
 def check_username(name: str) -> bool:
     """Проверяет введенное имя пользователя на соответствие правилам
@@ -45,7 +46,7 @@ async def data_preparation(data_db: Union[list, User]) -> str:
     for user in data_db:
         peer: dict = data_cmd.get(user.pub_key)
         if peer and peer.get('endpoint'):
-            res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n<b>Внешний адрес/порт</b>: <code>{peer['endpoint']}</code>\n<b>Появлялся:</b> <code>{peer['latest handshake']}</code>\n<b>Трафик:</b> <code>{peer['transfer']}</code>\n{'_'*50}\n"
+            res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n<b>Внешний адрес/порт</b>: <code>{peer['endpoint']}</code>\n<b>Появлялся:</b> <code>{_prepare_time_data(peer['latest handshake'])}</code>\n<b>Трафик:</b> <code>{peer['transfer']}</code>\n{'_'*50}\n"
         else:
             res += f"<b>Имя:</b> <code>{user.user_name}</code>\n<b>Локальный адрес:</b> <code>{user.ip}</code>\n<b>Активен:</b> <code>{'нет' if user.is_baned else 'да'}</code>\n{'_'*50}\n"
     if not res:
@@ -67,3 +68,12 @@ async def restart_wg() -> tuple:
             return (f'<code>{output[1]}</code>', False)
     except subprocess.CalledProcessError:
         return (f"Что то пошло не так", False)
+
+def _prepare_time_data(time_string: str) -> str:
+    def _get_timedelta(seconds: int = 0, minutes: int = 0, hours: int = 0) -> datetime:
+        delta = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours)
+        return datetime.datetime.now() - delta
+    prepare_data = list(map(lambda x: int(x.split()[0]), time_string.split(', ')))
+    prepare_data.reverse()
+    result: datetime.datetime = _get_timedelta(*prepare_data)
+    return result.strftime("%H:%M:%S %d.%m.%Y")
