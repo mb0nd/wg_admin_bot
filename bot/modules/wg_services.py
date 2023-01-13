@@ -43,6 +43,10 @@ async def data_preparation(data_db: List[User]) -> str:
             user_statistic['Трафик'] = peer['transfer']
         user_statistics_list.append(user_statistic)
     # Тут можно делать сортировки
+    user_statistics_list = sorted(
+        user_statistics_list, 
+        key=lambda x: _convert_to_bytes(*x['Трафик'].split()[:2]),
+        reverse=True)
     for user in user_statistics_list:
         result +="\n".join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", user.items())) + f"\n{'_'*32}\n"
     return result
@@ -96,3 +100,13 @@ def _prepare_time_data(time_string: str) -> str:
     prepare_data.reverse()
     result: datetime.datetime = _get_timedelta(*prepare_data)
     return result.strftime("%H:%M:%S %d.%m.%Y")
+
+def _get_units() -> dict:
+    bites_in = 2**10
+    return {'KiB' : bites_in,'MiB' : bites_in **2, 'GiB': bites_in **3}
+
+def _convert_to_bytes(value: str, measure: str) -> float:
+    try:
+        return float(value) * _get_units()[measure]
+    except (ValueError, KeyError):
+        return 0
