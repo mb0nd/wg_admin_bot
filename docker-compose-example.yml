@@ -32,6 +32,7 @@ services:
             LISTEN_PORT: #your wg_port
             HOST: #your host_ip
             PATH_TO_WG: /etc/wireguard/
+            TZ: Europe/Moscow
         ports:
             - #wg_port:wg_port/udp
         cap_add:
