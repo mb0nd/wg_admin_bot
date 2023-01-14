@@ -39,8 +39,8 @@ async def data_preparation(data_db: List[User]) -> str:
         peer: dict = data_cmd.get(user.pub_key)
         if peer and peer.get('endpoint'):
             user_statistic['Внешний адрес/порт'] = peer['endpoint']
-            user_statistic['Появлялся:'] = _prepare_time_data(peer['latest handshake'])
-            user_statistic['Трафик'] = peer['transfer']
+            user_statistic['Появлялся'] = _prepare_time_data(peer['latest handshake'])
+            user_statistic['Трафик'] = peer['transfer'].replace('received', 'загружено').replace('sent', 'отправлено')
         user_statistics_list.append(user_statistic)
     # Тут можно делать сортировки
     user_statistics_list = sorted(
@@ -102,10 +102,17 @@ def _prepare_time_data(time_string: str) -> str:
     return result.strftime("%H:%M:%S %d.%m.%Y")
 
 def _get_units() -> dict:
+    """Возвращает словарь с приставками единиц измерения данных и значением множителя
+    """
     bites_in = 2**10
-    return {'KiB' : bites_in,'MiB' : bites_in **2, 'GiB': bites_in **3}
+    return {'B': 1, 'KiB' : bites_in,'MiB' : bites_in **2, 'GiB': bites_in **3, 'TB': bites_in **4}
 
 def _convert_to_bytes(value: str, measure: str) -> float:
+    """Конвертирует полученное значение value из полученной
+    единицы измерения measure в байты
+    Returns:
+        float: значение в байтах
+    """
     try:
         return float(value) * _get_units()[measure]
     except (ValueError, KeyError):
