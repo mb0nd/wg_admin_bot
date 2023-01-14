@@ -34,7 +34,7 @@ async def data_preparation(data_db: List[User]) -> str:
                 'Локальный адрес': user.ip,
                 'Статус': 'заблокирован' if user.is_baned else 'активен',
                 'Внешний адрес/порт': 'нет данных',
-                'Появлялся:': 'нет данных',
+                'Появлялся': 'нет данных',
                 'Трафик': 'нет данных'}
         peer: dict = data_cmd.get(user.pub_key)
         if peer and peer.get('endpoint'):
