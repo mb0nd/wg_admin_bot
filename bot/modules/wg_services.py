@@ -40,7 +40,7 @@ async def data_preparation(data_db: List[User]) -> str:
         if peer and peer.get('endpoint'):
             user_statistic['Внешний адрес/порт'] = peer['endpoint']
             user_statistic['Появлялся'] = _prepare_time_data(peer['latest handshake'])
-            user_statistic['Трафик'] = peer['transfer'].replace('received', 'загружено').replace('sent', 'отправлено')
+            user_statistic['Трафик'] = _prepare_trafic_data(peer['transfer'])
         user_statistics_list.append(user_statistic)
     # Тут можно делать сортировки
     user_statistics_list = sorted(
@@ -117,3 +117,14 @@ def _convert_to_bytes(value: str, measure: str) -> float:
         return float(value) * _get_units()[measure]
     except (ValueError, KeyError):
         return 0
+
+def _prepare_trafic_data(data: str) -> str:
+    """Получает строку в формате '10.63 KiB received, 8.34 KiB sent'
+    Возвращает строку в формате '700.97 KiB загружено, 2.04 MiB отправлено'
+    Понятия загружено и отправлено поменяны местами т.к. изначальные данные 
+    определены со стороны сервера, возвращаем мы их относительно клиента.
+    """
+    received, send = data.split(', ')
+    received = received.replace('received', 'отправлено')
+    send = send.replace('sent', 'загружено')
+    return f"{send}, {received}"
