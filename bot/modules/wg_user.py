@@ -14,54 +14,8 @@ class WgUser:
     path_to_user_configs = path_to_wg + 'user_configs'
     serverPublickey = subprocess.getoutput(f'cat {path_to_wg}publickey')
 
-    @staticmethod
-    async def __file_reader(path_to_file: str) -> str:
-        """Интерфейс для чтения файлов
-
-        Args:
-            path_to_file (str): путь к файлу
-
-        Returns:
-            str: содержимое файла
-        """
-        with open(f'{path_to_file}', 'r', encoding='utf-8') as file:
-            return file.read()
-
-    @staticmethod
-    async def __file_writer(path_to_file: str, content: str) -> None:
-        """Интерфейс для записи файлов
-
-        Args:
-            path_to_file (str): путь к файлу
-            content (str): данные для записи
-        """
-        with open(f'{path_to_file}', 'w', encoding='utf-8') as file:
-            file.write(content)
-    
     def __init__(self, user: User) -> None:
         self.user_object = user
-
-    async def __set_new_peer(self) -> None:
-        """
-        Добавляет нового пользователя в текущий инстанс wireguard,
-        и дописывает новый peer в wg0.conf
-        """
-        with open(f'{WgUser.path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
-            file.write(f"\n[Peer]\nPublicKey = {self.user_object.pub_key}\nAllowedIPs = {self.user_object.ip}/32")
-        os.system( f"wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32")
-        
-    async def __generate_peer_config(self) -> None:
-        """
-        Создает конфигурационный файл пользователя,
-        при отсутствии создает папку пользователя
-        """
-        content = f"[Interface]\nPrivateKey = {self.user_object.privatekey}\nAddress = {self.user_object.ip}/32\n"\
-            f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {self.serverPublickey}\n"\
-            f"Endpoint = {env.host}:{env.listen_port}\n"\
-            "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
-        if not os.path.exists(self.path_to_user_configs):
-            os.mkdir(self.path_to_user_configs)
-        await self.__file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
 
     async def create_user(self) -> FSInputFile:
         """Метод создает пользователя
@@ -120,6 +74,52 @@ class WgUser:
             logger.error("Файл /etc/wireguard/wg0.conf отсутстует или поврежден.")
         await delete_user_in_db(self.user_object, session)
         await session.commit()
+
+    async def __set_new_peer(self) -> None:
+        """
+        Добавляет нового пользователя в текущий инстанс wireguard,
+        и дописывает новый peer в wg0.conf
+        """
+        with open(f'{WgUser.path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
+            file.write(f"\n[Peer]\nPublicKey = {self.user_object.pub_key}\nAllowedIPs = {self.user_object.ip}/32")
+        os.system( f"wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32")
+        
+    async def __generate_peer_config(self) -> None:
+        """
+        Создает конфигурационный файл пользователя,
+        при отсутствии создает папку пользователя
+        """
+        content = f"[Interface]\nPrivateKey = {self.user_object.privatekey}\nAddress = {self.user_object.ip}/32\n"\
+            f"DNS = 8.8.8.8\n[Peer]\nPublicKey = {self.serverPublickey}\n"\
+            f"Endpoint = {env.host}:{env.listen_port}\n"\
+            "AllowedIPs = 0.0.0.0/0\nPersistentKeepalive = 20"
+        if not os.path.exists(self.path_to_user_configs):
+            os.mkdir(self.path_to_user_configs)
+        await self.__file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
+
+    @staticmethod
+    async def __file_reader(path_to_file: str) -> str:
+        """Интерфейс для чтения файлов
+
+        Args:
+            path_to_file (str): путь к файлу
+
+        Returns:
+            str: содержимое файла
+        """
+        with open(f'{path_to_file}', 'r', encoding='utf-8') as file:
+            return file.read()
+
+    @staticmethod
+    async def __file_writer(path_to_file: str, content: str) -> None:
+        """Интерфейс для записи файлов
+
+        Args:
+            path_to_file (str): путь к файлу
+            content (str): данные для записи
+        """
+        with open(f'{path_to_file}', 'w', encoding='utf-8') as file:
+            file.write(content)    
 
 async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
         """Метод получает пользователя из БД, 
