@@ -3,19 +3,6 @@ from db.models import User
 import subprocess
 import datetime
 
-def check_username(name: str) -> bool:
-    """Проверяет введенное имя пользователя на соответствие правилам
-
-    Args:
-        name (str): имя введенное пользователем
-
-    Returns:
-        bool: прошло / не прошло проверку
-    """
-    if isinstance(name, str) and 3 < len(name) < 12 and name[0].isalpha():
-        return True
-    return False
-
 async def data_preparation(data_db: List[User]) -> str:
     """Собирает вместе данные из БД и консоли Wireguard и перегоняет в удобный вид
 
@@ -50,6 +37,19 @@ async def data_preparation(data_db: List[User]) -> str:
     for user in user_statistics_list:
         result +="\n".join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", user.items())) + f"\n{'_'*32}\n"
     return result
+
+def check_username(name: str) -> bool:
+    """Проверяет введенное имя пользователя на соответствие правилам
+
+    Args:
+        name (str): имя введенное пользователем
+
+    Returns:
+        bool: прошло / не прошло проверку
+    """
+    if isinstance(name, str) and 3 < len(name) < 12 and name[0].isalpha():
+        return True
+    return False
 
 async def restart_wg() -> tuple:
     """Выполняет команду перезапуска сервера Wireguard
