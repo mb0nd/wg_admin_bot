@@ -65,8 +65,7 @@ async def get_real_users(session: AsyncSession) -> List[User]:
         List[User]: список объектов класса User
     """
     stmt = select(User).where(User.pub_key!="0", User.ip!="0").order_by(User.created_at)
-    result = await session.execute(stmt)
-    real_users = result.scalars().all()
+    real_users = await session.scalars(stmt)
     return real_users
 
 async def get_pay_users(session: AsyncSession) -> List[int]:
@@ -80,8 +79,7 @@ async def get_pay_users(session: AsyncSession) -> List[int]:
         List[int]: список объектов класса User
     """
     stmt = select(User.user_id).where(User.is_pay == True)
-    result = await session.execute(stmt)
-    pay_users = result.scalars().all()
+    pay_users =  await session.scalars(stmt)
     return pay_users
 
 async def get_next_ip(session: AsyncSession) -> str:
