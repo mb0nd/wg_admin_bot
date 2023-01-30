@@ -23,6 +23,8 @@ async def send_message_to_pay(call: types.CallbackQuery, session: AsyncSession, 
 async def admin_traffic_statistics(call: types.CallbackQuery, session: AsyncSession):
     data_db = await get_real_users(session) 
     text = await data_preparation(data_db)
+    if not text:
+        text = 'Нет зарегистрированных пользователей.'
     await call.message.edit_text(text, reply_markup=back_button(), parse_mode='HTML')
 
 @router.callback_query(text='real_users')
