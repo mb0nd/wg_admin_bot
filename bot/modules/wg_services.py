@@ -90,15 +90,10 @@ def _prepare_time_data(time_string: str) -> str:
     Returns:
         str: строка формата '19:12:32 12.01.2023'
     """
-    def _get_timedelta(seconds: int = 0, minutes: int = 0, hours: int = 0, days: int = 0) -> datetime:
-        """Вычисляет разницу во времени вычитая прошедшее с последнего подключения
-        из текущего
-        """
-        delta = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
-        return datetime.datetime.now() - delta
     prepare_data = list(map(lambda x: int(x.split()[0]), time_string.split(', ')))
     prepare_data.reverse()
-    result: datetime.datetime = _get_timedelta(*prepare_data)
+    prepare_data = dict(zip(('seconds', 'minutes', 'hours', 'days'), prepare_data))
+    result: datetime.datetime = datetime.datetime.now() - datetime.timedelta(**prepare_data)
     return result.strftime("%H:%M:%S %d.%m.%Y")
 
 def _get_units() -> dict:
