@@ -21,9 +21,8 @@ class IsBanedMiddleware(BaseMiddleware):
         if not telegram_user:
             return await handler(event, data)
         session: AsyncSession = data['session']
-        stmt = select(User.is_baned).filter_by(user_id = telegram_user.id)
-        result: ChunkedIteratorResult = await session.execute(stmt)
-        find_baned_user: bool = result.scalars().first()
+        stmt = select(User.is_baned).where(User.user_id == telegram_user.id)
+        find_baned_user: bool = await session.scalar(stmt)
         if find_baned_user:
             if event.event_type == 'callback_query':
                 return await event.callback_query.answer()
