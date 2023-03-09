@@ -1,4 +1,5 @@
 from typing import Dict, List
+#from .schemas import Peer
 from db.models import User
 import subprocess
 import datetime
@@ -24,19 +25,23 @@ async def data_preparation(data_db: List[User]) -> str:
                 'Появлялся': 'нет данных',
                 'Трафик': 'нет данных'}
         peer: dict = data_cmd.get(user.pub_key)
-        if peer and peer.get('endpoint'):
+        if peer and peer.get('latest_handshake'):
             user_statistic['Внешний адрес/порт'] = peer['endpoint']
-            user_statistic['Появлялся'] = _prepare_time_data(peer['latest handshake'])
-            user_statistic['Трафик'] = _prepare_trafic_data(peer['transfer'])
+            #user_statistic['Появлялся'] = _prepare_time_data(peer['latest handshake'])
+            user_statistic['Появлялся'] = peer['latest_handshake'].strftime("%H:%M:%S %d.%m.%Y")
+            user_statistic['Трафик'] = _prepare_trafic_data(peer['send'], peer['received'])
         user_statistics_list.append(user_statistic)
     # Тут можно делать сортировки
-    user_statistics_list = sorted(
-        user_statistics_list, 
-        key=lambda x: _convert_to_bytes(*x['Трафик'].split()[:2]),
-        reverse=True)
+    #user_statistics_list = sorted(
+    #    user_statistics_list, 
+    #    key=lambda x: _convert_to_bytes(*x['Трафик'].split()[:2]),
+    #    reverse=True)
     for user in user_statistics_list:
         result +="\n".join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", user.items())) + f"\n{'_'*32}\n"
     return result
+
+async def new_data_preparation(data_db: List[User]) -> str:
+    data_cmd = await _check_statistics()
 
 def check_username(name: str) -> bool:
     """Проверяет введенное имя пользователя на соответствие правилам
@@ -73,15 +78,10 @@ async def _check_statistics() -> Dict:
     Returns:
         List[Dict]: данные об использовании страфика 
     """
-    output = (x.strip().split(': ') for x in subprocess.getoutput('wg show').splitlines()[5:] if x)
-    result = {}
-    for k, v in output:
-        if k == 'peer':
-            key = v
-            result[key] = {}
-        else:
-            result[key][k] = v
-    return result
+    data = map(str.split, subprocess.getoutput('wg show all dump').split('\n')[1:])
+    keys = ("endpoint", "allowed_ips", "latest_handshake", "received", "send")
+    return {i[1]: dict(zip(keys, i[3:8])) for i in data}
+
 
 def _prepare_time_data(time_string: str) -> str:
     """Подготавливает строку с датой и временем к нужному виду,
@@ -102,24 +102,22 @@ def _get_units() -> dict:
     bites_in = 2**10
     return {'B': 1, 'KiB' : bites_in,'MiB' : bites_in **2, 'GiB': bites_in **3, 'TB': bites_in **4}
 
-def _convert_to_bytes(value: str, measure: str) -> float:
+def _convert_from_bytes(value: int) -> float:
     """Конвертирует полученное значение value из полученной
     единицы измерения measure в байты
     Returns:
         float: значение в байтах
     """
-    try:
-        return float(value) * _get_units()[measure]
-    except (ValueError, KeyError):
-        return 0
+    meashures = _get_units()
+    for meashure in meashures.keys():
+        res =  value / meashures.get(meashure)
+        if res < 1000:
+            return f"{res} {meashure}"
 
-def _prepare_trafic_data(data: str) -> str:
+def _prepare_trafic_data(send: int, received: int) -> str:
     """Получает строку в формате '10.63 KiB received, 8.34 KiB sent'
     Возвращает строку в формате '700.97 KiB загружено, 2.04 MiB отправлено'
     Понятия загружено и отправлено поменяны местами т.к. изначальные данные 
     определены со стороны сервера, возвращаем мы их относительно клиента.
     """
-    received, send = data.split(', ')
-    received = received.replace('received', 'отправлено')
-    send = send.replace('sent', 'загружено')
-    return f"{send}, {received}"
+    return f"{_convert_from_bytes(received)} загружено, {_convert_from_bytes(send)} отправлено"
