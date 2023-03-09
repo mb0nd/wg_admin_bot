@@ -3,19 +3,43 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import FSInputFile
 from datetime import datetime
 from db.models import User
-from env_reader import env
+from env_reader import Settings
 from db.requests import get_next_ip, write_user_to_db, delete_user_in_db
 import subprocess
 import os
+from pydantic import BaseSettings
+
+
+class DBModelUser(BaseSettings):
+    user_id: int
+    user_name: str
+    pub_key: str
+    ip: str
+    is_baned: bool
+    is_pay: bool
+    created_at: datetime
+    updated_at: datetime
+
 
 class WgUser:
 
-    path_to_wg = env.path_to_wg
-    path_to_user_configs = path_to_wg + 'user_configs'
-    serverPublickey = subprocess.getoutput(f'cat {path_to_wg}publickey')
+    path_to_wg: str = Settings().path_to_wg
+    path_to_user_configs: str = path_to_wg + 'user_configs'
+    serverPublickey: str = subprocess.getoutput(f'cat {path_to_wg}publickey')
+    endpoint: str | None = None
+    latest_handshake: str | None = None
+    transfer: str | None = None
 
-    def __init__(self, user: User) -> None:
+    def init(self, user: DBModelUser) -> None:
         self.user_object = user
+        #self.user_id = user.user_id
+        #self.user_name = user.user_name
+        #self.pub_key = user.pub_key
+        #self.ip = user.ip
+        #self.is_baned = user.is_baned
+        #self.is_pay = user.is_pay
+        #self.created_at = user.created_at
+        #self.updated = user.updated_at
 
     async def create_user(self) -> FSInputFile:
         """Метод создает пользователя
