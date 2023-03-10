@@ -13,13 +13,18 @@ class UserModel(WGUserModel, DBUserModel):
         result = '\n'.join(map(
             lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", 
             zip(('Имя', 'Локальный адрес', 'Статус', 'Внешний адрес/порт', 'Появлялся', 'Трафик'),
-                (   self.user_name, 
-                    str(self.ip), 
-                    'заблокирован' if self.is_baned else 'активен', 
-                    self.endpoint, 
-                    self.latest_handshake.strftime("%H:%M:%S %d.%m.%Y") if self.latest_handshake else 'нет данных',
-                    f"{self._convert_from_bytes(self.received)} загружено, {self._convert_from_bytes(self.send)} отправлено"))))
+                (self.user_name, 
+                str(self.ip), 
+                'заблокирован' if self.is_baned else 'активен', 
+                self.endpoint, 
+                self._time_data_prepare(),
+                f"{self._convert_from_bytes(self.received)} загружено, {self._convert_from_bytes(self.send)} отправлено"))))
         return result
+    
+    def _time_data_prepare(self):
+        if isinstance(self.latest_handshake, str):
+            return self.latest_handshake
+        return self.latest_handshake.strftime("%H:%M:%S %d.%m.%Y")
 
     def _convert_from_bytes(self, value: int) -> float:
         for meashure in self._meashures.keys():
@@ -41,11 +46,10 @@ async def data_preparation(data_db: list[User]) -> str:
     for db_user in data_db:
         peer: WGUserModel = data_cmd.get(db_user.pub_key)
         if peer and peer.endpoint != '(none)':
-            user_statistics_list.append(UserModel(
-                **peer.dict(), 
-                **DBUserModel.from_orm(db_user).dict()))
+            user_statistics_list.append(UserModel(**peer.dict(), **DBUserModel.from_orm(db_user).dict()))
         else: 
             user_statistics_list.append(UserModel(**DBUserModel.from_orm(db_user).dict()))
+    user_statistics_list = sorted(user_statistics_list, key=lambda x: x.received)
     return f"\n{'_'*32}\n".join(map(str, user_statistics_list))
 
 def check_username(name: str) -> bool:

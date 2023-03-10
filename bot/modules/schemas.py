@@ -5,7 +5,7 @@ from datetime import datetime
 class WGUserModel(BaseModel):
     peer: str | None
     endpoint: str = 'нет данных'
-    latest_handshake: datetime | str = None
+    latest_handshake: datetime | str = 'нет данных'
     received: int = 0
     send: int = 0
 
