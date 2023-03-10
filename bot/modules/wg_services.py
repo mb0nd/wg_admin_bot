@@ -5,6 +5,10 @@ import subprocess
 
 
 class UserModel(WGUserModel, DBUserModel):
+
+    _bites_in = 2**10
+    _meashures = {'B': 1, 'KB' : _bites_in,'MB' : _bites_in **2, 'GB': _bites_in **3, 'TB': _bites_in **4}
+
     def __str__(self) -> str:
         result = '\n'.join(map(
             lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", 
@@ -14,8 +18,14 @@ class UserModel(WGUserModel, DBUserModel):
                     'заблокирован' if self.is_baned else 'активен', 
                     self.endpoint, 
                     self.latest_handshake.strftime("%H:%M:%S %d.%m.%Y") if self.latest_handshake else 'нет данных',
-                    _prepare_trafic_data(self.send, self.received)))))
+                    f"{self._convert_from_bytes(self.received)} загружено, {self._convert_from_bytes(self.send)} отправлено"))))
         return result
+
+    def _convert_from_bytes(self, value: int) -> float:
+        for meashure in self._meashures.keys():
+            res =  value / self._meashures.get(meashure)
+            if res < 1000:
+                return f"{res} {meashure}"
 
 async def data_preparation(data_db: list[User]) -> str:
     """Собирает вместе данные из БД и консоли Wireguard и перегоняет в удобный вид
@@ -76,29 +86,3 @@ async def _check_statistics() -> list[WGUserModel]:
     data = map(str.split, subprocess.getoutput('wg show all dump').split('\n')[1:])
     keys = ("peer","endpoint", "latest_handshake", "received", "send")
     return {i[1]: WGUserModel.parse_obj(dict(zip(keys, i[1:2] + i[3:4] + i[5:8]))) for i in data}
-
-def _get_units() -> dict:
-    """Возвращает словарь с приставками единиц измерения данных и значением множителя
-    """
-    bites_in = 2**10
-    return {'B': 1, 'KiB' : bites_in,'MiB' : bites_in **2, 'GiB': bites_in **3, 'TB': bites_in **4}
-
-def _convert_from_bytes(value: int) -> float:
-    """Конвертирует полученное значение value из полученной
-    единицы измерения measure в байты
-    Returns:
-        float: значение в байтах
-    """
-    meashures = _get_units()
-    for meashure in meashures.keys():
-        res =  value / meashures.get(meashure)
-        if res < 1000:
-            return f"{res} {meashure}"
-
-def _prepare_trafic_data(send: int, received: int) -> str:
-    """Получает строку в формате '10.63 KiB received, 8.34 KiB sent'
-    Возвращает строку в формате '700.97 KiB загружено, 2.04 MiB отправлено'
-    Понятия загружено и отправлено поменяны местами т.к. изначальные данные 
-    определены со стороны сервера, возвращаем мы их относительно клиента.
-    """
-    return f"{_convert_from_bytes(received)} загружено, {_convert_from_bytes(send)} отправлено"
