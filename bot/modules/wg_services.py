@@ -1,10 +1,23 @@
-from typing import Dict, List
-#from .schemas import Peer
+from .schemas import WGUserModel, DBUserModel
 from db.models import User
 import subprocess
-import datetime
 
-async def data_preparation(data_db: List[User]) -> str:
+
+
+class UserModel(WGUserModel, DBUserModel):
+    def __str__(self) -> str:
+        result = '\n'.join(map(
+            lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", 
+            zip(('Имя', 'Локальный адрес', 'Статус', 'Внешний адрес/порт', 'Появлялся', 'Трафик'),
+                (   self.user_name, 
+                    str(self.ip), 
+                    'заблокирован' if self.is_baned else 'активен', 
+                    self.endpoint, 
+                    self.latest_handshake.strftime("%H:%M:%S %d.%m.%Y") if self.latest_handshake else 'нет данных',
+                    _prepare_trafic_data(self.send, self.received)))))
+        return result
+
+async def data_preparation(data_db: list[User]) -> str:
     """Собирает вместе данные из БД и консоли Wireguard и перегоняет в удобный вид
 
     Args:
@@ -13,35 +26,17 @@ async def data_preparation(data_db: List[User]) -> str:
     Returns:
         str: подготовленная для вывода строка со статистикой пользователей
     """
-    result = '' 
+    data_cmd: dict[str: WGUserModel] = await _check_statistics()
     user_statistics_list = []
-    data_cmd = await _check_statistics()
-    for user in data_db:
-        user_statistic = {
-                'Имя': user.user_name,
-                'Локальный адрес': user.ip,
-                'Статус': 'заблокирован' if user.is_baned else 'активен',
-                'Внешний адрес/порт': 'нет данных',
-                'Появлялся': 'нет данных',
-                'Трафик': 'нет данных'}
-        peer: dict = data_cmd.get(user.pub_key)
-        if peer and peer.get('latest_handshake'):
-            user_statistic['Внешний адрес/порт'] = peer['endpoint']
-            #user_statistic['Появлялся'] = _prepare_time_data(peer['latest handshake'])
-            user_statistic['Появлялся'] = peer['latest_handshake'].strftime("%H:%M:%S %d.%m.%Y")
-            user_statistic['Трафик'] = _prepare_trafic_data(peer['send'], peer['received'])
-        user_statistics_list.append(user_statistic)
-    # Тут можно делать сортировки
-    #user_statistics_list = sorted(
-    #    user_statistics_list, 
-    #    key=lambda x: _convert_to_bytes(*x['Трафик'].split()[:2]),
-    #    reverse=True)
-    for user in user_statistics_list:
-        result +="\n".join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", user.items())) + f"\n{'_'*32}\n"
-    return result
-
-async def new_data_preparation(data_db: List[User]) -> str:
-    data_cmd = await _check_statistics()
+    for db_user in data_db:
+        peer: WGUserModel = data_cmd.get(db_user.pub_key)
+        if peer and peer.endpoint != '(none)':
+            user_statistics_list.append(UserModel(
+                **peer.dict(), 
+                **DBUserModel.from_orm(db_user).dict()))
+        else: 
+            user_statistics_list.append(UserModel(**DBUserModel.from_orm(db_user).dict()))
+    return f"\n{'_'*32}\n".join(map(str, user_statistics_list))
 
 def check_username(name: str) -> bool:
     """Проверяет введенное имя пользователя на соответствие правилам
@@ -72,29 +67,15 @@ async def restart_wg() -> tuple:
     except subprocess.CalledProcessError:
         return (f"Что то пошло не так", False)
 
-async def _check_statistics() -> Dict:
+async def _check_statistics() -> list[WGUserModel]:
     """Выполняет команду "wg show" и парсит вывод о каждом пользователе в словарь
 
     Returns:
         List[Dict]: данные об использовании страфика 
     """
     data = map(str.split, subprocess.getoutput('wg show all dump').split('\n')[1:])
-    keys = ("endpoint", "allowed_ips", "latest_handshake", "received", "send")
-    return {i[1]: dict(zip(keys, i[3:8])) for i in data}
-
-
-def _prepare_time_data(time_string: str) -> str:
-    """Подготавливает строку с датой и временем к нужному виду,
-    которая показывает когда клиент подключался последний раз
-
-    Returns:
-        str: строка формата '19:12:32 12.01.2023'
-    """
-    prepare_data = list(map(lambda x: int(x.split()[0]), time_string.split(', ')))
-    prepare_data.reverse()
-    prepare_data = dict(zip(('seconds', 'minutes', 'hours', 'days'), prepare_data))
-    result: datetime.datetime = datetime.datetime.now() - datetime.timedelta(**prepare_data)
-    return result.strftime("%H:%M:%S %d.%m.%Y")
+    keys = ("peer","endpoint", "latest_handshake", "received", "send")
+    return {i[1]: WGUserModel.parse_obj(dict(zip(keys, i[1:2] + i[3:4] + i[5:8]))) for i in data}
 
 def _get_units() -> dict:
     """Возвращает словарь с приставками единиц измерения данных и значением множителя

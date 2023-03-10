@@ -1,20 +1,18 @@
-from pydantic import BaseModel, IPvAnyNetwork
+from pydantic import BaseModel, IPvAnyAddress, IPvAnyInterface
 from datetime import datetime
 
 
 class WGUserModel(BaseModel):
     peer: str | None
-    endpoint: str | None
-    allowed_ips: IPvAnyNetwork
-    latest_handshake: int | None
-    received: int | None
-    send: int | None
+    endpoint: str = 'нет данных'
+    latest_handshake: datetime | str = None
+    received: int = 0
+    send: int = 0
 
 class DBUserModel(BaseModel):
     user_id: int
     user_name: str
-    pub_key: str
-    ip: str
+    ip: IPvAnyAddress
     is_baned: bool
     is_pay: bool
     created_at: datetime
@@ -22,8 +20,3 @@ class DBUserModel(BaseModel):
 
     class Config:
         orm_mode = True
-
-class UserModel(WGUserModel, DBUserModel):
-    pass
-
-
