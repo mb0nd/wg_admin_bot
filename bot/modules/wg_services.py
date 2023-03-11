@@ -18,7 +18,7 @@ class UserModel(WGUserModel, DBUserModel):
                 'заблокирован' if self.is_baned else 'активен', 
                 self.endpoint, 
                 self._time_data_prepare(),
-                f"{self._convert_from_bytes(self.received)} загружено, {self._convert_from_bytes(self.send)} отправлено"))))
+                f"{self._convert_from_bytes(self.send)} загружено, {self._convert_from_bytes(self.received)} отправлено"))))
         return result
     
     def _time_data_prepare(self):
@@ -28,7 +28,7 @@ class UserModel(WGUserModel, DBUserModel):
 
     def _convert_from_bytes(self, value: int) -> float:
         for meashure in self._meashures.keys():
-            res =  value / self._meashures.get(meashure)
+            res = round(value / self._meashures.get(meashure), 2)
             if res < 1000:
                 return f"{res} {meashure}"
 
@@ -49,7 +49,7 @@ async def data_preparation(data_db: list[User]) -> str:
             user_statistics_list.append(UserModel(**peer.dict(), **DBUserModel.from_orm(db_user).dict()))
         else: 
             user_statistics_list.append(UserModel(**DBUserModel.from_orm(db_user).dict()))
-    user_statistics_list = sorted(user_statistics_list, key=lambda x: x.received)
+    user_statistics_list = sorted(user_statistics_list, key=lambda x: x.received, reverse=True)
     return f"\n{'_'*32}\n".join(map(str, user_statistics_list))
 
 def check_username(name: str) -> bool:
