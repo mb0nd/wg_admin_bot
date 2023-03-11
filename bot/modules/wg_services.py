@@ -10,15 +10,17 @@ class UserModel(WGUserModel, DBUserModel):
     _meashures = {'B': 1, 'KB' : _bites_in,'MB' : _bites_in **2, 'GB': _bites_in **3, 'TB': _bites_in **4}
 
     def __str__(self) -> str:
-        result = '\n'.join(map(
-            lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", 
-            zip(('Имя', 'Локальный адрес', 'Статус', 'Внешний адрес/порт', 'Появлялся', 'Трафик'),
-                (self.user_name, 
-                str(self.ip), 
-                'заблокирован' if self.is_baned else 'активен', 
-                self.endpoint, 
-                self._time_data_prepare(),
-                f"{self._convert_from_bytes(self.send)} загружено, {self._convert_from_bytes(self.received)} отправлено"))))
+        send = self._convert_from_bytes(self.send)
+        received = self._convert_from_bytes(self.received)
+        keys_ru = ('Имя', 'Локальный адрес', 'Статус', 'Внешний адрес/порт', 'Появлялся', 'Трафик')
+        values = (
+            self.user_name, 
+            str(self.ip), 
+            'заблокирован' if self.is_baned else 'активен', 
+            self.endpoint, 
+            self._time_data_prepare(), 
+            f"{send} загружено, {received} отправлено")
+        result = '\n'.join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", zip(keys_ru, values)))
         return result
     
     def _time_data_prepare(self):
