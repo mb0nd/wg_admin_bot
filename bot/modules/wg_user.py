@@ -8,6 +8,9 @@ from db.requests import get_next_ip, write_user_to_db, delete_user_in_db
 import subprocess
 import os
 
+
+
+
 class WgUser:
     env = Settings()
     path_to_wg: str = env.path_to_wg
@@ -35,10 +38,10 @@ class WgUser:
     async def switch_ban_status(self, session: AsyncSession) -> None:
         input_text = await self.__file_reader(f"{self.path_to_wg}wg0.conf")
         if not self.user_object.is_baned:
-            os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
+            subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'remove'])
             output_text = input_text.replace(self.user_object.pub_key, f"%BANNED%{self.user_object.pub_key}")
         else:
-            os.system(f'wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32')
+            subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'allowed-ips', self.user_object.ip + '/32'])
             output_text = input_text.replace(f"%BANNED%{self.user_object.pub_key}", self.user_object.pub_key)
         await self.__file_writer(f"{self.path_to_wg}wg0.conf", output_text)
         self.user_object.is_baned = not self.user_object.is_baned
@@ -58,7 +61,7 @@ class WgUser:
         Args:
             user (User): объект класса модели пользователя
         """
-        os.system(f'wg set wg0 peer {self.user_object.pub_key} remove')
+        subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'remove'])
         try:
             with open(f'{self.path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
                 input_text = f.readlines()
@@ -83,7 +86,7 @@ class WgUser:
         """
         with open(f'{WgUser.path_to_wg}wg0.conf', 'a', encoding='utf-8') as file:
             file.write(f"\n[Peer]\nPublicKey = {self.user_object.pub_key}\nAllowedIPs = {self.user_object.ip}/32")
-        os.system( f"wg set wg0 peer {self.user_object.pub_key} allowed-ips {self.user_object.ip}/32")
+        subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'allowed-ips', self.user_object.ip + '/32'])
         
     async def __generate_peer_config(self) -> None:
         """
