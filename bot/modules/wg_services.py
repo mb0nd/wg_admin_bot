@@ -1,13 +1,11 @@
 from .schemas import WGUserModel, DBUserModel
+from datetime import timedelta
 from db.models import DbUser
 import subprocess
 
 
 
 class User(WGUserModel, DBUserModel):
-
-    _bites_in = 2**10
-    _meashures = {'B': 1, 'KB' : _bites_in,'MB' : _bites_in **2, 'GB': _bites_in **3, 'TB': _bites_in **4}
 
     def __str__(self) -> str:
         send = self._convert_from_bytes(self.send)
@@ -26,11 +24,14 @@ class User(WGUserModel, DBUserModel):
     def _time_data_prepare(self):
         if isinstance(self.latest_handshake, str):
             return self.latest_handshake
-        return self.latest_handshake.strftime("%H:%M:%S %d.%m.%Y")
+        res = self.latest_handshake.timetz() + timedelta(hours=3)
+        return res.strftime("%H:%M:%S %d.%m.%Y")
 
     def _convert_from_bytes(self, value: int) -> float:
-        for meashure in self._meashures.keys():
-            res = round(value / self._meashures.get(meashure), 2)
+        BITES_IN = 2**10
+        MEASHURES = {'B': 1, 'KB' : BITES_IN,'MB' : BITES_IN **2, 'GB': BITES_IN **3, 'TB': BITES_IN **4}
+        for meashure in MEASHURES.keys():
+            res = round(value / MEASHURES.get(meashure), 2)
             if res < 1000:
                 return f"{res} {meashure}"
 
