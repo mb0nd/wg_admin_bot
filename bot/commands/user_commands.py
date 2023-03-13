@@ -6,7 +6,7 @@ from cb_data import UserCallbackData
 from modules.wg_services import check_username
 from commands.keyboards import getvpn, get_accept_buttons
 from env_reader import Settings
-from db.models import User
+from db.models import DbUser
 
 
 router = Router()
@@ -45,7 +45,7 @@ async def get_vpn(
     in_verification: set,
     callback_data: UserCallbackData
 ):
-    user = await session.get(User, callback_data.id)
+    user = await session.get(DbUser, callback_data.id)
     if user:
         await call.message.edit_text( text='Вы уже зарегистрированы!')
         return

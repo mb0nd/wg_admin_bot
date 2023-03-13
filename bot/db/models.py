@@ -3,7 +3,7 @@ from datetime import datetime
 from db.base import Base
 
 
-class User(Base):
+class DbUser(Base):
     __tablename__ = 'users'
     user_id = Column(BigInteger, primary_key=True)
     user_name = Column(String(32), nullable = True)

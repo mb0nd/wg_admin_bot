@@ -2,7 +2,7 @@ from asyncio.log import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from aiogram.types import FSInputFile
 from datetime import datetime
-from db.models import User
+from db.models import DbUser
 from env_reader import Settings
 from db.requests import get_next_ip, write_user_to_db, delete_user_in_db
 import subprocess
@@ -17,7 +17,7 @@ class WgUser:
     path_to_user_configs: str = path_to_wg + 'user_configs'
     serverPublickey: str = subprocess.getoutput(f'cat {path_to_wg}publickey')
 
-    def __init__(self, user: User) -> None:
+    def __init__(self, user: DbUser) -> None:
         self.user_object = user    
 
     async def create_user(self) -> FSInputFile:
@@ -137,10 +137,10 @@ async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
         Returns:
             WgUser: экземпляр класса
         """
-        user = await session.get(User, id)
+        user = await session.get(DbUser, id)
         if user is None:
             privatekey = subprocess.getoutput('wg genkey')
-            user = User(
+            user = DbUser(
                 user_id = id,
                 user_name = name,
                 pub_key = subprocess.getoutput(f'echo {privatekey} | wg pubkey'),

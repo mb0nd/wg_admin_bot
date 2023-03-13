@@ -3,10 +3,10 @@ from ipaddress import IPv4Address
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from cb_data import UserCallbackData
-from db.models import User
+from db.models import DbUser
 
 
-async def write_user_to_db(user: User, session: AsyncSession) -> None:
+async def write_user_to_db(user: DbUser, session: AsyncSession) -> None:
     """Записать данные пользователя в БД
 
     Args:
@@ -22,7 +22,7 @@ async def decline_access_user(callback_data: UserCallbackData, session: AsyncSes
         callback_data (UserCallbackData): данные о пользователе
         session (AsyncSession): сессия с БД
     """
-    user = User(
+    user = DbUser(
         user_id = callback_data.id,
         user_name = callback_data.name,
         is_baned = True,
@@ -30,7 +30,7 @@ async def decline_access_user(callback_data: UserCallbackData, session: AsyncSes
     )
     session.add(user)
 
-async def delete_user_in_db(user: User, session: AsyncSession) -> None:
+async def delete_user_in_db(user: DbUser, session: AsyncSession) -> None:
     """Удаление пользователя из БД
 
     Args:
@@ -39,7 +39,7 @@ async def delete_user_in_db(user: User, session: AsyncSession) -> None:
     """
     await session.delete(user)
 
-async def get_blocked_users(session: AsyncSession) -> List[User]:
+async def get_blocked_users(session: AsyncSession) -> List[DbUser]:
     """Поллучить из БД всех пользователей которым доступ был отклонен и
        не генерировался конфиг
 
@@ -49,12 +49,12 @@ async def get_blocked_users(session: AsyncSession) -> List[User]:
     Returns:
         List[User]: список объектов класса User
     """
-    stmt = select(User.user_id, User.user_name).where(User.is_baned==True, User.pub_key=="0", User.ip=="0")
+    stmt = select(DbUser.user_id, DbUser.user_name).where(DbUser.is_baned==True, DbUser.pub_key=="0", DbUser.ip=="0")
     result = await session.execute(stmt)
     blocked_users = result.all()
     return blocked_users
 
-async def get_real_users(session: AsyncSession) -> List[User]:
+async def get_real_users(session: AsyncSession) -> List[DbUser]:
     """Получение списка всех пользователей из БД, которым разрешался доступ
        включая забаненых
 
@@ -64,7 +64,7 @@ async def get_real_users(session: AsyncSession) -> List[User]:
     Returns:
         List[User]: список объектов класса User
     """
-    stmt = select(User).where(User.pub_key!="0", User.ip!="0").order_by(User.created_at)
+    stmt = select(DbUser).where(DbUser.pub_key!="0", DbUser.ip!="0").order_by(DbUser.created_at)
     real_users = await session.scalars(stmt)
     return real_users
 
@@ -78,7 +78,7 @@ async def get_pay_users(session: AsyncSession) -> List[int]:
     Returns:
         List[int]: список объектов класса User
     """
-    stmt = select(User.user_id).where(User.is_pay == True)
+    stmt = select(DbUser.user_id).where(DbUser.is_pay == True)
     pay_users =  await session.scalars(stmt)
     return pay_users
 
@@ -91,7 +91,7 @@ async def get_next_ip(session: AsyncSession) -> str:
     Returns:
         str: ip 
     """
-    result = await session.scalars(select(func.max(User.ip)))
+    result = await session.scalars(select(func.max(DbUser.ip)))
     ip = result.first()
     if ip is None:
         return '10.0.0.10'

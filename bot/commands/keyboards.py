@@ -1,7 +1,7 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types.inline_keyboard_markup import InlineKeyboardMarkup
 from aiogram.types.inline_keyboard_button import InlineKeyboardButton
-from db.models import User
+from db.models import DbUser
 from cb_data import UserCallbackData
 
 def getvpn(user_id, user_name) -> InlineKeyboardMarkup:
@@ -41,7 +41,7 @@ def real_users_menu(user_list: list) -> InlineKeyboardMarkup:
     builder.row(InlineKeyboardButton(text='< Назад', callback_data='admin'))
     return builder.as_markup(resize_keyboard=True)
 
-def one_user_menu(user: User) -> InlineKeyboardMarkup:
+def one_user_menu(user: DbUser) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     if user.is_baned:
         builder.row(InlineKeyboardButton(text="разблокировать ✅", callback_data=UserCallbackData(action='set_ban_status', id=user.user_id).pack()))

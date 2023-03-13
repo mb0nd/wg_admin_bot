@@ -1,10 +1,10 @@
 from .schemas import WGUserModel, DBUserModel
-from db.models import User
+from db.models import DbUser
 import subprocess
 
 
 
-class UserModel(WGUserModel, DBUserModel):
+class User(WGUserModel, DBUserModel):
 
     _bites_in = 2**10
     _meashures = {'B': 1, 'KB' : _bites_in,'MB' : _bites_in **2, 'GB': _bites_in **3, 'TB': _bites_in **4}
@@ -34,7 +34,7 @@ class UserModel(WGUserModel, DBUserModel):
             if res < 1000:
                 return f"{res} {meashure}"
 
-async def data_preparation(data_db: list[User]) -> str:
+async def data_preparation(data_db: list[DbUser]) -> str:
     """Собирает вместе данные из БД и консоли Wireguard и перегоняет в удобный вид
 
     Args:
@@ -48,9 +48,9 @@ async def data_preparation(data_db: list[User]) -> str:
     for db_user in data_db:
         peer: WGUserModel = data_cmd.get(db_user.pub_key)
         if peer and peer.endpoint != '(none)':
-            user_statistics_list.append(UserModel(**peer.dict(), **DBUserModel.from_orm(db_user).dict()))
+            user_statistics_list.append(User(**peer.dict(), **DBUserModel.from_orm(db_user).dict()))
         else: 
-            user_statistics_list.append(UserModel(**DBUserModel.from_orm(db_user).dict()))
+            user_statistics_list.append(User(**DBUserModel.from_orm(db_user).dict()))
     user_statistics_list = sorted(user_statistics_list, key=lambda x: x.received, reverse=True)
     return f"\n{'_'*32}\n".join(map(str, user_statistics_list))
 
