@@ -1,9 +1,8 @@
-from pydantic import BaseModel, IPvAnyAddress, Field
+from pydantic import BaseModel, IPvAnyAddress
 from datetime import datetime
 
 
 class WGUserModel(BaseModel):
-    pub_key: str | None = Field(alias='peer')
     endpoint: str = 'нет данных'
     latest_handshake: datetime | str = 'нет данных'
     received: int = 0

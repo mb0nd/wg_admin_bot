@@ -91,5 +91,5 @@ async def _check_statistics() -> list[WGUserModel]:
         List[Dict]: данные об использовании страфика 
     """
     data = map(str.split, subprocess.getoutput('wg show all dump').split('\n')[1:])
-    keys = ("peer","endpoint", "latest_handshake", "received", "send")
-    return {i[1]: WGUserModel.parse_obj(dict(zip(keys, i[1:2] + i[3:4] + i[5:8]))) for i in data}
+    keys = ("endpoint", "latest_handshake", "received", "send")
+    return {i[1]: WGUserModel.parse_obj(dict(zip(keys, i[3:4] + i[5:8]))) for i in data}
