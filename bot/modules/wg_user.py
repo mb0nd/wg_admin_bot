@@ -12,7 +12,7 @@ import os
 
 
 
-class WgUser():
+class WgUser:
 
     env = Settings()
     path_to_wg: str = env.path_to_wg
