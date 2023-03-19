@@ -41,16 +41,14 @@ class WgUser:
         """
         subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'remove'])
         try:
-            with open(f'{self.path_to_wg}wg0.conf', 'r', encoding='utf-8') as f:
-                input_text = f.readlines()
+            input_text = await self.__file_reader(f'{self.path_to_wg}wg0.conf', lines=True)    
             for i in range(len(input_text)):
                 if self.user_object.pub_key in input_text[i]:
                     for _ in range(3):
                         input_text.pop(i-1)
                     break
             input_text[-1] = input_text[-1].rstrip()
-            with open(f'{self.path_to_wg}wg0.conf', 'w', encoding='utf-8') as f:
-                f.writelines(input_text)
+            await self.__file_writer(f'{self.path_to_wg}wg0.conf', input_text, lines=True)
             os.remove(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf')
         except (FileNotFoundError, IndexError):
             logger.error("Файл /etc/wireguard/wg0.conf отсутстует или поврежден.")
@@ -115,7 +113,7 @@ class WgUser:
                 return f"{res} {meashure}"
 
     @staticmethod
-    async def __file_reader(path_to_file: str) -> str:
+    async def __file_reader(path_to_file: str, lines: bool = False) -> str:
         """Интерфейс для чтения файлов
 
         Args:
@@ -125,10 +123,12 @@ class WgUser:
             str: содержимое файла
         """
         with open(f'{path_to_file}', 'r', encoding='utf-8') as file:
+            if lines:
+                return file.readlines()
             return file.read()
 
     @staticmethod
-    async def __file_writer(path_to_file: str, content: str) -> None:
+    async def __file_writer(path_to_file: str, content: str, lines: bool = False) -> None:
         """Интерфейс для записи файлов
 
         Args:
@@ -136,7 +136,10 @@ class WgUser:
             content (str): данные для записи
         """
         with open(f'{path_to_file}', 'w', encoding='utf-8') as file:
-            file.write(content)
+            if lines:
+                file.writelines(content)
+            else:
+                file.write(content)
 
     def __init__(self, user_object: DbUser, wg_user_model: WGUserModel) -> None:
         self.user_object = user_object
@@ -194,7 +197,7 @@ async def get_user(id: int, session: AsyncSession, name: str = None) -> WgUser:
             await write_user_to_db(user, session)
             await session.commit()
             user.privatekey = privatekey
-        return WgUser(user_object = user, wg_user_model= await check_statistics(user.pub_key))
+        return WgUser(user_object = user, wg_user_model = await check_statistics(user.pub_key))
 
 async def check_statistics(pub_key: str | None = None) -> list[WGUserModel] | WGUserModel:
         """Выполняет команду "wg show" и парсит вывод о каждом пользователе в словарь
