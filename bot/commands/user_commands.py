@@ -3,7 +3,7 @@ from aiogram.dispatcher.fsm.state import StatesGroup, State
 from aiogram.dispatcher.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from cb_data import UserCallbackData
-from modules.wg_user import check_username
+from modules.wg_services import check_username
 from commands.keyboards import getvpn, get_accept_buttons
 from env_reader import Settings
 from db.models import DbUser

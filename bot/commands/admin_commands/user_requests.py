@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cb_data import UserCallbackData
 from sqlalchemy.exc import IntegrityError
 from db.requests import decline_access_user
-from modules.wg_user import get_user, check_first_connection
+from modules.wg_services import get_user, check_first_connection
 
 router = Router()
 
