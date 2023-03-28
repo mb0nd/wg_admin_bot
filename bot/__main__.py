@@ -23,6 +23,7 @@ async def main() -> None:
     # Мидлварь с проверкой на БАН проверяет все события
     dp.update.outer_middleware.register(IsBanedMiddleware())
     admin_router.message.filter(F.from_user.id == env.admin_id)
+    admin_router.callback_query.filter(F.from_user.id == env.admin_id)
     dp.include_router(admin_router)
     dp.include_router(user_router)
 
