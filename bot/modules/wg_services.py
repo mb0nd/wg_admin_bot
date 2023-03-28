@@ -105,5 +105,5 @@ async def data_preparation(data_db: list[DbUser]) -> str:
             user_statistics_list.append(WgUser(user_object = db_user, wg_user_model=peer))
         else: 
             user_statistics_list.append(WgUser(user_object = db_user, wg_user_model=WGUserModel()))
-    user_statistics_list = sorted(user_statistics_list, key=lambda x: x.wg_user_model.received, reverse=True)
+    user_statistics_list = sorted(user_statistics_list, key=lambda x: x.wg_user_model.send, reverse=True)
     return f"\n{'_'*32}\n".join(map(str, user_statistics_list))
