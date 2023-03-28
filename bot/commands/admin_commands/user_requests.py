@@ -17,8 +17,8 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     if not status:
         await user.delete_user(session)
         await call.message.edit_text(text=f"Срок действия файла конфигурации для {callback_data.name} истек.")
+        await bot.send_message(callback_data.id, 'Срок действия файла конфигурации истек.')
     await bot.delete_message(callback_data.id, message.message_id)
-    await bot.send_message(callback_data.id, 'Срок действия файла конфигурации истек.')
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))

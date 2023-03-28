@@ -64,12 +64,12 @@ async def check_statistics(pub_key: str | None = None) -> list[WGUserModel] | WG
 
 async def check_first_connection(pub_key: str) -> bool:
     start = datetime.utcnow()
-    while datetime.utcnow() < start + timedelta(seconds=30):
+    while datetime.utcnow() < start + timedelta(minutes=30):
         user: WGUserModel = await check_statistics(pub_key)
         if user.endpoint != 'нет данных':
             return True
         else:
-            await sleep(5)
+            await sleep(30)
     return False
 
 async def restart_wg() -> tuple:

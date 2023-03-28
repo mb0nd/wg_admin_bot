@@ -55,15 +55,14 @@ class WgUser:
         await delete_user_in_db(self.user_object, session)
         await session.commit()
 
-    # ПЕРЕПИСАТЬ WG падает при запуске и удаляет интерфейс
     async def switch_ban_status(self, session: AsyncSession) -> None:
         input_text = await self.__file_reader(f"{self.path_to_wg}wg0.conf")
         if not self.user_object.is_baned:
             subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'remove'])
-            output_text = input_text.replace(self.user_object.pub_key, f"%BANNED%{self.user_object.pub_key}")
+            output_text = input_text.replace(f"AllowedIPs = {self.user_object.ip}/32", f"#AllowedIPs = {self.user_object.ip}/32")
         else:
             subprocess.run(['wg', 'set', 'wg0', 'peer', self.user_object.pub_key, 'allowed-ips', self.user_object.ip + '/32'])
-            output_text = input_text.replace(f"%BANNED%{self.user_object.pub_key}", self.user_object.pub_key)
+            output_text = input_text.replace(f"#AllowedIPs = {self.user_object.ip}/32", f"AllowedIPs = {self.user_object.ip}/32")
         await self.__file_writer(f"{self.path_to_wg}wg0.conf", output_text)
         self.user_object.is_baned = not self.user_object.is_baned
         self.user_object.updated_at = datetime.now()
