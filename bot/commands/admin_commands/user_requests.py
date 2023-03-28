@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from cb_data import UserCallbackData
 from sqlalchemy.exc import IntegrityError
 from db.requests import decline_access_user
-from modules.wg_user import get_user
+from modules.wg_user import get_user, check_first_connection
 
 router = Router()
 
@@ -12,7 +12,13 @@ async def accept_event_user(call: types.CallbackQuery, session: AsyncSession, bo
     user = await get_user(callback_data.id, session, callback_data.name)
     config = await user.create_user()
     await call.message.edit_text(text=f"Пользователю {callback_data.name} доступ разрешен")
-    await bot.send_document(callback_data.id, config)
+    message = await bot.send_document(callback_data.id, config)
+    status =  await check_first_connection(user.user_object.pub_key)
+    if not status:
+        await user.delete_user(session)
+        await call.message.edit_text(text=f"Срок действия файла конфигурации для {callback_data.name} истек.")
+    await bot.delete_message(callback_data.id, message.message_id)
+    await bot.send_message(callback_data.id, 'Срок действия файла конфигурации истек.')
     in_verification.discard(int(callback_data.id))
 
 @router.callback_query(UserCallbackData.filter(F.action =='decline_user'))

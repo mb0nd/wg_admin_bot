@@ -1,5 +1,6 @@
 from asyncio.log import logger
 from sqlalchemy.ext.asyncio import AsyncSession
+from asyncio import sleep
 from aiogram.types import FSInputFile
 from datetime import datetime, timedelta
 from db.models import DbUser
@@ -212,7 +213,17 @@ async def check_statistics(pub_key: str | None = None) -> list[WGUserModel] | WG
             return result
         if pub_key in result:
             return result.get(pub_key)
-        return WGUserModel()       
+        return WGUserModel()
+
+async def check_first_connection(pub_key: str) -> bool:
+    start = datetime.utcnow()
+    while datetime.utcnow() < start + timedelta(seconds=30):
+        user: WGUserModel = await check_statistics(pub_key)
+        if user.endpoint != 'нет данных':
+            return True
+        else:
+            await sleep(5)
+    return False
 
 async def restart_wg() -> tuple:
     """Выполняет команду перезапуска сервера Wireguard
