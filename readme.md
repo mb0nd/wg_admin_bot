@@ -62,7 +62,7 @@
 	- __PATH_TO_WG__=/etc/wireguard/ _(путь установки wireguard при установке по умолчанию)_
 - Выполнить команду
 	```
-	run docker-compose up --build
+	docker-compose up --build
 	```
 
 ##### - Развертывание непосредственно на сервере:
