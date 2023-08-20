@@ -143,6 +143,8 @@ class WgUser:
     def __init__(self, user_object: DbUser, wg_user_model: WGUserModel) -> None:
         self.user_object = user_object
         self.wg_user_model = wg_user_model
+        if len(self.user_object.user_name) > 14:
+            self.user_object.user_name = self.user_object.user_name[:15]
 
     def __str__(self) -> str:
         send = self.__convert_from_bytes(self.wg_user_model.send)
