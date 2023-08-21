@@ -30,7 +30,7 @@ class WgUser:
         """
         await self.__set_new_peer()
         await self.__generate_peer_config()
-        config = FSInputFile(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', filename=f'{self.user_object.user_name}.conf')
+        config = FSInputFile(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', filename=f'wg_tunnel.conf')
         return config
     
     async def delete_user(self, session: AsyncSession) -> None:
@@ -143,8 +143,6 @@ class WgUser:
     def __init__(self, user_object: DbUser, wg_user_model: WGUserModel) -> None:
         self.user_object = user_object
         self.wg_user_model = wg_user_model
-        if len(self.user_object.user_name) > 14:
-            self.user_object.user_name = self.user_object.user_name[:15]
 
     def __str__(self) -> str:
         send = self.__convert_from_bytes(self.wg_user_model.send)
