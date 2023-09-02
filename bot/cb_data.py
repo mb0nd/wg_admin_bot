@@ -1,8 +1,7 @@
-from aiogram.dispatcher.filters.callback_data import CallbackData
-from typing import Union
+from aiogram.filters.callback_data import CallbackData
 
 
 class UserCallbackData(CallbackData, prefix='user'):
     action: str
-    id: Union[int, None]
-    name: Union[str, None]
+    id: int | None
+    name: str | None = None

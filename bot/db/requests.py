@@ -39,7 +39,7 @@ async def delete_user_in_db(user: DbUser, session: AsyncSession) -> None:
     """
     await session.delete(user)
 
-async def get_blocked_users(session: AsyncSession) -> List[DbUser]:
+async def get_blocked_users(session: AsyncSession) -> List[tuple]:
     """Поллучить из БД всех пользователей которым доступ был отклонен и
        не генерировался конфиг
 
@@ -51,8 +51,7 @@ async def get_blocked_users(session: AsyncSession) -> List[DbUser]:
     """
     stmt = select(DbUser.user_id, DbUser.user_name).where(DbUser.is_baned==True, DbUser.pub_key=="0", DbUser.ip=="0")
     result = await session.execute(stmt)
-    blocked_users = result.all()
-    return blocked_users
+    return result.all()
 
 async def get_real_users(session: AsyncSession) -> List[DbUser]:
     """Получение списка всех пользователей из БД, которым разрешался доступ
@@ -65,8 +64,8 @@ async def get_real_users(session: AsyncSession) -> List[DbUser]:
         List[User]: список объектов класса User
     """
     stmt = select(DbUser).where(DbUser.pub_key!="0", DbUser.ip!="0").order_by(DbUser.created_at)
-    real_users = await session.scalars(stmt)
-    return real_users
+    result = await session.scalars(stmt)
+    return result.all()
 
 async def get_pay_users(session: AsyncSession) -> List[int]:
     """Получение из БД всех пользователей, которым разрешался доступ
@@ -79,8 +78,8 @@ async def get_pay_users(session: AsyncSession) -> List[int]:
         List[int]: список объектов класса User
     """
     stmt = select(DbUser.user_id).where(DbUser.is_pay == True)
-    pay_users =  await session.scalars(stmt)
-    return pay_users
+    result =  await session.scalars(stmt)
+    return result.all()
 
 async def get_next_ip(session: AsyncSession) -> str:
     """Возвращает следующий за максимальным ip адрес из БД

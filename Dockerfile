@@ -1,5 +1,5 @@
 #Separate build image
-FROM python:3.11-alpine3.16 as compile-image
+FROM python:3.11-alpine3.18 as compile-image
 RUN apk add --update --no-cache gcc musl-dev g++
 COPY requirements.txt .
 RUN python -m venv /opt/venv
@@ -14,9 +14,6 @@ RUN apk add -U --no-cache wireguard-tools iptables \
 COPY --from=compile-image /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
-COPY alembic.ini /app/alembic.ini
-COPY alembic /app/alembic
-COPY bot /app/bot
-COPY initwg.sh /app/initwg.sh
+COPY . /app/
 RUN chmod +x /app/initwg.sh
 ENTRYPOINT [ "/app/initwg.sh" ]

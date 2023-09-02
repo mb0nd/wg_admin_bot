@@ -1,6 +1,7 @@
 from aiogram import Bot, Router, types, F
-from aiogram.dispatcher.fsm.state import StatesGroup, State
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.filters import Command
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from cb_data import UserCallbackData
 from modules.wg_services import check_username
@@ -14,7 +15,7 @@ router = Router()
 class GetUsername(StatesGroup):
     get_username = State()
 
-@router.message(commands=["start"])
+@router.message(Command("start"))
 async def start(message: types.Message, in_verification: set, state: FSMContext) -> types.Message:
     if not message.from_user.id in in_verification:
         if message.from_user.username is None:
