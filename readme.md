@@ -50,7 +50,7 @@
 	```
 	git clone https://github.com/mb0nd/wg_admin_bot.git
 	```
-- Копируем docker-compose-example.yml и переименовываем в docker-compose.yml
+- Копируем .env.example и переименовываем в .env
 - Заполняем переменные окружения:
 	- __POSTGRES_PASSWORD__ _(пароль для доступа к БД)_
 	- __POSTGRES_USER__ _(имя пользователя БД)_
@@ -60,7 +60,8 @@
 	- __LISTEN_PORT__ _(порт используемый wireguard)_
 	- __HOST__ _(ip адрес сервера, по которому он доступен в интернете)_
 	- __PATH_TO_WG__=/etc/wireguard/ _(путь установки wireguard при установке по умолчанию)_
-- В блоке "__ports__" для сервиса __bot__ необходимо указать проброс портов для WireGuard в формате  __wg_port:wg_port/udp__ (порт тот же, что и в __LISTEN_PORT__)
+	- __TZ__ _(временная зона)_
+
 - Выполнить команду
 	```
 	docker-compose up -d --build
