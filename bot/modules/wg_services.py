@@ -55,7 +55,7 @@ async def check_statistics(pub_key: str | None = None) -> list[WGUserModel] | WG
         """
         data = filter(lambda x: x[3] != '(none)', map(str.split, subprocess.getoutput('wg show all dump').split('\n')[1:]))
         keys = ("endpoint", "latest_handshake", "received", "send")
-        result = {i[1]: WGUserModel.parse_obj(dict(zip(keys, i[3:4] + i[5:8]))) for i in data}
+        result = {i[1]: WGUserModel.model_validate(dict(zip(keys, i[3:4] + i[5:8]))) for i in data}
         if pub_key is None:
             return result
         if pub_key in result:

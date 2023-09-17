@@ -96,12 +96,6 @@ class WgUser:
         if not os.path.exists(self.path_to_user_configs):
             os.mkdir(self.path_to_user_configs)
         await self.__file_writer(f'{self.path_to_user_configs}/{self.user_object.user_name}.conf', content)
-    
-    def __time_data_prepare(self):
-        if isinstance(self.wg_user_model.latest_handshake, str):
-            return self.wg_user_model.latest_handshake
-        res = self.wg_user_model.latest_handshake + timedelta(hours=3)
-        return res.strftime("%H:%M:%S %d.%m.%Y")
 
     def __convert_from_bytes(self, value: int) -> float:
         BITES_IN = 2**10
@@ -151,10 +145,9 @@ class WgUser:
         values = (
             self.user_object.user_name, 
             str(self.user_object.ip), 
-            'заблокирован' if self.user_object.
-            is_baned else 'активен', 
-            self.wg_user_model.endpoint, 
-            self.__time_data_prepare(), 
+            'заблокирован' if self.user_object.is_baned else 'активен', 
+            self.wg_user_model.endpoint,
+            self.wg_user_model.latest_handshake,
             f"{send} загружено, {received} отправлено")
         result = '\n'.join(map(lambda x: f"<b>{x[0]}:</b> <code>{x[1]}</code>", zip(keys_ru, values)))
         return result
