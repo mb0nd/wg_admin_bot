@@ -86,6 +86,7 @@ volumes:
 services:
   db:
     image: postgres:13-alpine
+	container_name: wg_database
     restart: "unless-stopped"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -94,6 +95,7 @@ services:
       - "pgdata:/var/lib/postgresql/data"
   bot:
     image: mb0nd/wg_admin_bot:latest
+	container_name: wg_admin_bot
     stop_signal: SIGINT
     restart: "unless-stopped"
     environment:
