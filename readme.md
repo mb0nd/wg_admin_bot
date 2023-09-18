@@ -77,52 +77,52 @@ mkdir /srv/wg_bot && cd /srv/wg_bot
 ``` yaml
 version: '3.3'
 volumes:
-	pgdata:
-		driver: local
-		driver_opts:
-			o: bind
-			type: none
-			device: /opt/pg_data
-	wgdata:
-		driver: local
-		driver_opts:
-			o: bind
-			type: none
-			device: /opt/wg_data
+  pgdata:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/pg_data
+  wgdata:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/wg_data
 services:
-	db:
-		image: postgres:13-alpine
-		restart: "unless-stopped"
-		environment:
-			POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-			POSTGRES_USER: ${POSTGRES_USER}
-		volumes:
-			- "pgdata:/var/lib/postgresql/data"
-	bot:
-		image: mb0nd/wg_admin_bot:latest
-		stop_signal: SIGINT
-		restart: "unless-stopped"
-		environment:
-			API_TOKEN: ${API_TOKEN}
-			ADMIN_ID: ${ADMIN_ID}
-			PG_URL: ${PG_URL}
-			LISTEN_PORT: ${LISTEN_PORT}
-			HOST: ${HOST}
-			PATH_TO_WG: ${PATH_TO_WG}
-			TZ: ${TZ}
-		ports:
-			- ${LISTEN_PORT}:${LISTEN_PORT}/udp
-		cap_add:
-			- "NET_ADMIN"
-		volumes:
-			- "wgdata:${PATH_TO_WG}"
-		healthcheck:
-			test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-			interval: 10s
-			timeout: 5s
-			retries: 10
-		depends_on:
-			- db
+  db:
+    image: postgres:13-alpine
+    restart: "unless-stopped"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+    volumes:
+      - "pgdata:/var/lib/postgresql/data"
+  bot:
+    image: mb0nd/wg_admin_bot:latest
+    stop_signal: SIGINT
+    restart: "unless-stopped"
+    environment:
+      API_TOKEN: ${API_TOKEN}
+      ADMIN_ID: ${ADMIN_ID}
+      PG_URL: ${PG_URL}
+      LISTEN_PORT: ${LISTEN_PORT}
+      HOST: ${HOST}
+      PATH_TO_WG: ${PATH_TO_WG}
+      TZ: ${TZ}
+    ports:
+      - ${LISTEN_PORT}:${LISTEN_PORT}/udp
+    cap_add:
+      - "NET_ADMIN"
+    volumes:
+      - "wgdata:${PATH_TO_WG}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      - db
 ```
 
 5. Создать в папке проекта файл .env со следующим содержимым (значения переменных заменить на свои):
