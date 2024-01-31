@@ -23,7 +23,7 @@ services:
         volumes:
             - "pgdata:/var/lib/postgresql/data"
     bot:
-        image: mb0nd/wg_admin_bot:latest
+        image: mb0nd/wg_admin_bot:3.12
         container_name: wg_admin_bot
         stop_signal: SIGINT
         restart: "unless-stopped"
